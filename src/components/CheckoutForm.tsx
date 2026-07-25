@@ -145,7 +145,8 @@ function UpiAppQrCard({ appId }: { appId: string }) {
 /**
  * Native-app launch animation, inspired by (not copied from) each app's real
  * startup motion: colour, ring style and micro-gesture differ per app while
- * sharing the same premium bloom-and-settle choreography.
+ * sharing the same premium bloom-and-settle choreography. The logo sits
+ * centre-top; the remaining app icons line up in a strip just beneath it.
  */
 function AppLaunchOverlay({ appId }: { appId: string }) {
   const app = UPI_APPS.find(a => a.id === appId)
@@ -155,6 +156,7 @@ function AppLaunchOverlay({ appId }: { appId: string }) {
   return (
     <motion.div
       className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30"
+      style={{ paddingBottom: 30 }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
@@ -162,87 +164,106 @@ function AppLaunchOverlay({ appId }: { appId: string }) {
     >
       <motion.div
         className="absolute inset-0"
-        style={{ background: `radial-gradient(circle at 50% 42%, ${accent}1a 0%, transparent 65%)` }}
+        style={{ background: `radial-gradient(circle at 50% 38%, ${accent}1a 0%, transparent 65%)` }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       />
 
-      {/* Default ripple rings (PhonePe / Paytm-style soft pulse) */}
-      {(appId === 'phonepe' || appId === 'paytm') &&
-        [0, 1].map(i => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full border-2"
-            style={{ borderColor: accent, width: 58, height: 58 }}
-            initial={{ opacity: 0.55, scale: 0.6 }}
-            animate={{ opacity: 0, scale: 2.6 }}
-            transition={{ duration: 1, delay: i * 0.22, ease: 'easeOut' }}
-          />
-        ))}
-
-      {/* GPay: rotating four-colour ring, like dots resolving into the mark */}
-      {appId === 'gpay' && (
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            width: 76,
-            height: 76,
-            background: 'conic-gradient(from 0deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4)',
-            maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-            WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-          }}
-          initial={{ rotate: 0, opacity: 0, scale: 0.7 }}
-          animate={{ rotate: 300, opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        />
-      )}
-
-      {/* BHIM: tricolor sweep settling into place */}
-      {appId === 'bhim' && (
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            width: 76,
-            height: 76,
-            background: 'conic-gradient(from -90deg, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%)',
-            maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-            WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-          }}
-          initial={{ rotate: -70, opacity: 0, scale: 0.6 }}
-          animate={{ rotate: 0, opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        />
-      )}
-
-      {/* Logo pop: shared bounce-settle used by every app */}
-      <motion.div
-        className="relative rounded-2xl overflow-hidden flex items-center justify-center bg-white"
-        style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55` }}
-        initial={{ scale: 0.3, opacity: 0, rotate: -6 }}
-        animate={{ scale: [0.3, 1.18, 1], opacity: 1, rotate: 0 }}
-        exit={{ scale: 0.7, opacity: 0, transition: { duration: 0.2 } }}
-        transition={{ duration: 0.55, times: [0, 0.6, 1], ease: [0.34, 1.56, 0.64, 1] }}
+      {/* Opening label — takes the place of the faded "Pay via app" heading */}
+      <motion.span
+        className="absolute top-0 left-0 text-[11px] font-bold uppercase tracking-[0.14em]"
+        style={{ color: accent }}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ delay: 0.12, duration: 0.25 }}
       >
-        {Logo ? <Logo size={56} /> : null}
+        Opening {app?.name}…
+      </motion.span>
 
-        {/* CRED: gold shimmer sweep across the mark */}
-        {appId === 'cred' && (
+      {/* Logo + rings block */}
+      <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
+        {/* Default ripple rings (PhonePe / Paytm-style soft pulse) */}
+        {(appId === 'phonepe' || appId === 'paytm') &&
+          [0, 1].map(i => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full border-2"
+              style={{ borderColor: accent, width: 58, height: 58, left: 11, top: 11 }}
+              initial={{ opacity: 0.55, scale: 0.6 }}
+              animate={{ opacity: 0, scale: 2.2 }}
+              transition={{ duration: 1, delay: i * 0.22, ease: 'easeOut' }}
+            />
+          ))}
+
+        {/* GPay: rotating four-colour ring, like dots resolving into the mark */}
+        {appId === 'gpay' && (
           <motion.div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(115deg, transparent 30%, ${accent}88 50%, transparent 70%)` }}
-            initial={{ x: '-130%' }}
-            animate={{ x: '130%' }}
-            transition={{ duration: 0.7, delay: 0.18, ease: 'easeInOut' }}
+            className="absolute rounded-full"
+            style={{
+              width: 76,
+              height: 76,
+              left: 2,
+              top: 2,
+              background: 'conic-gradient(from 0deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4)',
+              maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+              WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+            }}
+            initial={{ rotate: 0, opacity: 0, scale: 0.7 }}
+            animate={{ rotate: 300, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           />
         )}
-      </motion.div>
+
+        {/* BHIM: tricolor sweep settling into place */}
+        {appId === 'bhim' && (
+          <motion.div
+            className="absolute rounded-full"
+            style={{
+              width: 76,
+              height: 76,
+              left: 2,
+              top: 2,
+              background: 'conic-gradient(from -90deg, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%)',
+              maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+              WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+            }}
+            initial={{ rotate: -70, opacity: 0, scale: 0.6 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
+        )}
+
+        {/* Logo pop: shared bounce-settle used by every app */}
+        <motion.div
+          className="relative rounded-2xl overflow-hidden flex items-center justify-center bg-white"
+          style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55` }}
+          initial={{ scale: 0.3, opacity: 0, rotate: -6 }}
+          animate={{ scale: [0.3, 1.18, 1], opacity: 1, rotate: 0 }}
+          exit={{ scale: 0.7, opacity: 0, transition: { duration: 0.2 } }}
+          transition={{ duration: 0.55, times: [0, 0.6, 1], ease: [0.34, 1.56, 0.64, 1] }}
+        >
+          {Logo ? <Logo size={56} /> : null}
+
+          {/* CRED: gold shimmer sweep across the mark */}
+          {appId === 'cred' && (
+            <motion.div
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(115deg, transparent 30%, ${accent}88 50%, transparent 70%)` }}
+              initial={{ x: '-130%' }}
+              animate={{ x: '130%' }}
+              transition={{ duration: 0.7, delay: 0.18, ease: 'easeInOut' }}
+            />
+          )}
+        </motion.div>
+      </div>
 
       {/* Amazon: signature smile arc drawing in beneath the mark */}
       {appId === 'amazon' && (
-        <svg width="46" height="20" viewBox="0 0 46 20" className="mt-1.5" style={{ overflow: 'visible' }} aria-hidden="true">
+        <svg width="40" height="16" viewBox="0 0 46 20" className="-mt-1" style={{ overflow: 'visible' }} aria-hidden="true">
           <motion.path
             d="M3 4 C 14 18, 32 18, 43 4"
             fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round"
@@ -256,17 +277,6 @@ function AppLaunchOverlay({ appId }: { appId: string }) {
           />
         </svg>
       )}
-
-      <motion.span
-        className="mt-2.5 text-[12px] font-bold tracking-wide"
-        style={{ color: accent }}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ delay: 0.3, duration: 0.3 }}
-      >
-        Opening {app?.name}…
-      </motion.span>
     </motion.div>
   )
 }
@@ -689,31 +699,71 @@ export function CheckoutForm() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -30, scale: 0.97 }}
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    className="relative w-full max-w-[420px] mx-auto"
+                    className="relative w-full max-w-[420px] mx-auto overflow-visible"
+                    style={{ paddingBottom: selectedUpiApp ? 28 : 0 }}
                   >
-                    {/* QR card — hidden by default, emerges from behind the main card's
-                        bottom-right corner so it reads as a second card in the stack. */}
-                    <AnimatePresence>
+                    {/* Main UPI card — slides left to clear the top-right for the QR */}
+                    <motion.div
+                      className="relative z-10"
+                      initial={false}
+                      animate={{
+                        x: qrRevealed ? -40 : 0,
+                        scale: qrRevealed ? 0.9 : 1,
+                      }}
+                      transition={{ type: 'spring', stiffness: 280, damping: 26, mass: 0.8 }}
+                      style={{ transformOrigin: 'left center', willChange: 'transform' }}
+                    >
+                      <UpiIllustration />
+                    </motion.div>
+
+                    {/* QR card — peels out from behind the main card's top-right corner,
+                        stays inside the left panel so it never hits the form */}
+                    <AnimatePresence initial={false}>
                       {selectedUpiApp && qrRevealed && (
                         <motion.div
                           key="qr-card"
-                          className="absolute"
-                          style={{ top: '56%', right: '-12%', width: '48%', zIndex: 0 }}
-                          initial={{ opacity: 0, scale: 0.6, rotate: -20, y: -34, x: -14, filter: 'blur(18px)' }}
-                          animate={{ opacity: 1, scale: 1, rotate: -7, y: 30, x: 16, filter: 'blur(0px)' }}
-                          exit={{ opacity: 0, scale: 0.58, rotate: -22, y: -28, x: -10, filter: 'blur(14px)' }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 22, mass: 0.85 }}
+                          className="absolute z-[15] pointer-events-none"
+                          style={{
+                            top: '-10%',
+                            right: '2%',
+                            width: '40%',
+                            maxWidth: 168,
+                          }}
+                          initial={{
+                            opacity: 0,
+                            scale: 0.45,
+                            x: -56,
+                            y: 42,
+                            rotate: 12,
+                            filter: 'blur(14px)',
+                          }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            x: 0,
+                            y: 0,
+                            rotate: 4,
+                            filter: 'blur(0px)',
+                          }}
+                          exit={{
+                            opacity: 0,
+                            scale: 0.45,
+                            x: -48,
+                            y: 36,
+                            rotate: 12,
+                            filter: 'blur(12px)',
+                            transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
+                          }}
+                          transition={{ type: 'spring', stiffness: 280, damping: 24, mass: 0.7 }}
                         >
-                          <UpiAppQrCard appId={selectedUpiApp} />
+                          <div className="pointer-events-auto">
+                            <UpiAppQrCard appId={selectedUpiApp} />
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    <div className="relative z-10">
-                      <UpiIllustration />
-                    </div>
-
-                    {/* Show / hide QR trigger — appears once an app is chosen */}
+                    {/* Show / hide QR — appears once an app is chosen */}
                     <AnimatePresence>
                       {selectedUpiApp && (
                         <motion.button
@@ -722,8 +772,8 @@ export function CheckoutForm() {
                           onClick={() => setQrRevealed(v => !v)}
                           className="absolute z-20 flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-bold text-slate-800"
                           style={{
-                            bottom: -14,
-                            right: 18,
+                            bottom: 0,
+                            left: 8,
                             background: '#fff',
                             boxShadow: '0 8px 20px rgba(15,23,42,0.18), 0 0 0 1px rgba(226,232,240,0.9)',
                           }}
@@ -883,7 +933,10 @@ export function CheckoutForm() {
                         >
                           Pay via app
                         </motion.p>
-                        <div className={launchingApp ? 'flex items-end justify-center gap-1.5 pt-3' : 'grid grid-cols-3 gap-2'}>
+                        <div
+                          className={launchingApp ? 'flex items-end justify-center gap-1.5' : 'grid grid-cols-3 gap-2'}
+                          style={launchingApp ? { height: 108 } : undefined}
+                        >
                           {UPI_APPS.map(app => {
                             const Logo = UPI_LOGOS[app.id]
                             const selected = selectedUpiApp === app.id
@@ -908,7 +961,11 @@ export function CheckoutForm() {
                                 }
                                 style={
                                   launchingApp
-                                    ? { width: 30, height: 30, opacity: isLaunching ? 0 : 1 }
+                                    ? isLaunching
+                                      ? // Selected app leaves the strip — it lives centre-stage in the overlay.
+                                        // Width must stay non-zero or Framer's layout scale-correction breaks.
+                                        { width: 10, height: 30, opacity: 0, borderWidth: 0, padding: 0 }
+                                      : { width: 30, height: 30, opacity: 1 }
                                     : { opacity: 1 }
                                 }
                               >
