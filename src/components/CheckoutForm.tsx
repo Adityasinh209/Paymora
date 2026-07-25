@@ -43,8 +43,8 @@ const WALLETS = [
   { id: 'jio', name: 'JioMoney', color: '#0A2885' },
 ]
 
-/** Decorative QR-code-like SVG used in the UPI left panel */
-function UpiQrSvg() {
+/** Decorative QR-code-like SVG used in the UPI left panel and QR reveal card */
+function UpiQrSvg({ dark = false, size = 80 }: { dark?: boolean; size?: number }) {
   const cells = [
     [1,1,0,1,0,1,1,0],
     [1,0,1,1,0,0,0,1],
@@ -56,17 +56,23 @@ function UpiQrSvg() {
     [0,1,1,1,0,0,1,1],
   ]
   const S = 8, G = 1.5
+  const stroke = dark ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.8)'
+  const fillStrong = dark ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.8)'
+  const fillSoft = dark ? 'rgba(30,41,59,0.6)' : 'rgba(255,255,255,0.55)'
+  const badgeFill = dark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.25)'
+  const badgeStroke = dark ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.25)'
+  const badgeText = dark ? 'rgba(67,56,202,0.9)' : 'rgba(255,255,255,0.9)'
   return (
-    <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 80 80" aria-hidden="true">
       {/* Top-left finder */}
-      <rect x="2" y="2" width="22" height="22" rx="3" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.2"/>
-      <rect x="7" y="7" width="12" height="12" rx="1.5" fill="rgba(255,255,255,0.8)"/>
+      <rect x="2" y="2" width="22" height="22" rx="3" fill="none" stroke={stroke} strokeWidth="2.2"/>
+      <rect x="7" y="7" width="12" height="12" rx="1.5" fill={fillStrong}/>
       {/* Top-right finder */}
-      <rect x="56" y="2" width="22" height="22" rx="3" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.2"/>
-      <rect x="61" y="7" width="12" height="12" rx="1.5" fill="rgba(255,255,255,0.8)"/>
+      <rect x="56" y="2" width="22" height="22" rx="3" fill="none" stroke={stroke} strokeWidth="2.2"/>
+      <rect x="61" y="7" width="12" height="12" rx="1.5" fill={fillStrong}/>
       {/* Bottom-left finder */}
-      <rect x="2" y="56" width="22" height="22" rx="3" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.2"/>
-      <rect x="7" y="61" width="12" height="12" rx="1.5" fill="rgba(255,255,255,0.8)"/>
+      <rect x="2" y="56" width="22" height="22" rx="3" fill="none" stroke={stroke} strokeWidth="2.2"/>
+      <rect x="7" y="61" width="12" height="12" rx="1.5" fill={fillStrong}/>
       {/* Data cells */}
       {cells.map((row, r) =>
         row.map((cell, c) =>
@@ -76,15 +82,192 @@ function UpiQrSvg() {
               x={28 + c * (S + G)}
               y={28 + r * (S + G)}
               width={S} height={S} rx="1.2"
-              fill="rgba(255,255,255,0.55)"
+              fill={fillSoft}
             />
           ) : null
         )
       )}
       {/* Centre "UPI" badge */}
-      <rect x="28" y="28" width="24" height="24" rx="4" fill="rgba(99,102,241,0.25)" stroke="rgba(255,255,255,0.25)" strokeWidth="1"/>
-      <text x="40" y="44" textAnchor="middle" fontSize="8" fontWeight="800" fill="rgba(255,255,255,0.9)" letterSpacing="0.5">UPI</text>
+      <rect x="28" y="28" width="24" height="24" rx="4" fill={badgeFill} stroke={badgeStroke} strokeWidth="1"/>
+      <text x="40" y="44" textAnchor="middle" fontSize="8" fontWeight="800" fill={badgeText} letterSpacing="0.5">UPI</text>
     </svg>
+  )
+}
+
+/** Brand accent colors used purely for the launch-animation glow/motion — not real app assets */
+const APP_ACCENTS: Record<string, string> = {
+  gpay: '#4285F4',
+  phonepe: '#5F259F',
+  paytm: '#00BAF2',
+  bhim: '#16A34A',
+  amazon: '#FF9900',
+  cred: '#C9A227',
+}
+
+/** Small QR card that "emerges" from behind the main UPI illustration once revealed */
+function UpiAppQrCard({ appId }: { appId: string }) {
+  const app = UPI_APPS.find(a => a.id === appId)
+  const Logo = UPI_LOGOS[appId]
+  const accent = APP_ACCENTS[appId] ?? '#6366F1'
+  return (
+    <div
+      className="relative overflow-hidden select-none flex flex-col items-center gap-2.5 p-3.5"
+      style={{
+        width: '100%',
+        aspectRatio: '0.86 / 1',
+        borderRadius: 16,
+        background: 'linear-gradient(165deg, #ffffff 0%, #f8fafc 100%)',
+        boxShadow: [
+          `0 0 0 1.5px ${accent}55`,
+          '0 30px 55px -12px rgba(2,6,23,0.55)',
+          '0 10px 22px -6px rgba(2,6,23,0.35)',
+          '0 1px 0 rgba(255,255,255,0.8) inset',
+        ].join(', '),
+        border: '1px solid rgba(226,232,240,0.9)',
+      }}
+      aria-label={`${app?.name ?? 'UPI'} QR code`}
+    >
+      <div className="flex items-center gap-1.5">
+        <div className="w-5 h-5 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
+          {Logo ? <Logo size={20} /> : null}
+        </div>
+        <span className="text-[10.5px] font-bold text-slate-700 tracking-tight">{app?.name}</span>
+      </div>
+      <div className="p-2 rounded-lg bg-white border border-slate-100" style={{ boxShadow: `0 0 0 1px ${accent}22` }}>
+        <UpiQrSvg dark size={64} />
+      </div>
+      <span className="text-[8.5px] font-bold text-slate-400 tracking-[0.14em] uppercase">Scan to Pay</span>
+      <div className="absolute inset-x-0 bottom-0 h-1" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
+    </div>
+  )
+}
+
+/**
+ * Native-app launch animation, inspired by (not copied from) each app's real
+ * startup motion: colour, ring style and micro-gesture differ per app while
+ * sharing the same premium bloom-and-settle choreography.
+ */
+function AppLaunchOverlay({ appId }: { appId: string }) {
+  const app = UPI_APPS.find(a => a.id === appId)
+  const Logo = UPI_LOGOS[appId]
+  const accent = APP_ACCENTS[appId] ?? '#6366F1'
+
+  return (
+    <motion.div
+      className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.25 }}
+    >
+      <motion.div
+        className="absolute inset-0"
+        style={{ background: `radial-gradient(circle at 50% 42%, ${accent}1a 0%, transparent 65%)` }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+
+      {/* Default ripple rings (PhonePe / Paytm-style soft pulse) */}
+      {(appId === 'phonepe' || appId === 'paytm') &&
+        [0, 1].map(i => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border-2"
+            style={{ borderColor: accent, width: 58, height: 58 }}
+            initial={{ opacity: 0.55, scale: 0.6 }}
+            animate={{ opacity: 0, scale: 2.6 }}
+            transition={{ duration: 1, delay: i * 0.22, ease: 'easeOut' }}
+          />
+        ))}
+
+      {/* GPay: rotating four-colour ring, like dots resolving into the mark */}
+      {appId === 'gpay' && (
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: 76,
+            height: 76,
+            background: 'conic-gradient(from 0deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4)',
+            maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+            WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+          }}
+          initial={{ rotate: 0, opacity: 0, scale: 0.7 }}
+          animate={{ rotate: 300, opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        />
+      )}
+
+      {/* BHIM: tricolor sweep settling into place */}
+      {appId === 'bhim' && (
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: 76,
+            height: 76,
+            background: 'conic-gradient(from -90deg, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%)',
+            maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+            WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+          }}
+          initial={{ rotate: -70, opacity: 0, scale: 0.6 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      )}
+
+      {/* Logo pop: shared bounce-settle used by every app */}
+      <motion.div
+        className="relative rounded-2xl overflow-hidden flex items-center justify-center bg-white"
+        style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55` }}
+        initial={{ scale: 0.3, opacity: 0, rotate: -6 }}
+        animate={{ scale: [0.3, 1.18, 1], opacity: 1, rotate: 0 }}
+        exit={{ scale: 0.7, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ duration: 0.55, times: [0, 0.6, 1], ease: [0.34, 1.56, 0.64, 1] }}
+      >
+        {Logo ? <Logo size={56} /> : null}
+
+        {/* CRED: gold shimmer sweep across the mark */}
+        {appId === 'cred' && (
+          <motion.div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(115deg, transparent 30%, ${accent}88 50%, transparent 70%)` }}
+            initial={{ x: '-130%' }}
+            animate={{ x: '130%' }}
+            transition={{ duration: 0.7, delay: 0.18, ease: 'easeInOut' }}
+          />
+        )}
+      </motion.div>
+
+      {/* Amazon: signature smile arc drawing in beneath the mark */}
+      {appId === 'amazon' && (
+        <svg width="46" height="20" viewBox="0 0 46 20" className="mt-1.5" style={{ overflow: 'visible' }} aria-hidden="true">
+          <motion.path
+            d="M3 4 C 14 18, 32 18, 43 4"
+            fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.26, ease: 'easeOut' }}
+          />
+          <motion.path
+            d="M38 2 L44 4 L40 9" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68, duration: 0.2 }}
+          />
+        </svg>
+      )}
+
+      <motion.span
+        className="mt-2.5 text-[12px] font-bold tracking-wide"
+        style={{ color: accent }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
+      >
+        Opening {app?.name}…
+      </motion.span>
+    </motion.div>
   )
 }
 
@@ -255,6 +438,30 @@ export function CheckoutForm() {
   const [upiId, setUpiId] = useState('')
   const [upiIdTouched, setUpiIdTouched] = useState(false)
   const [selectedUpiApp, setSelectedUpiApp] = useState<string | null>(null)
+  const [qrRevealed, setQrRevealed] = useState(false)
+  const [launchingApp, setLaunchingApp] = useState<string | null>(null)
+  const launchTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  // Select (or deselect) a UPI app; plays a brief native-style launch animation on select
+  const selectUpiApp = useCallback((appId: string) => {
+    setQrRevealed(false)
+    setSelectedUpiApp((prev) => {
+      const isDeselect = prev === appId
+      if (isDeselect) return null
+
+      setUpiId((prevId) => (prevId.includes('@') ? prevId : `name${UPI_APPS.find(a => a.id === appId)?.handle ?? ''}`))
+      if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+      setLaunchingApp(appId)
+      launchTimeoutRef.current = setTimeout(() => setLaunchingApp(null), 1000)
+      return appId
+    })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+    }
+  }, [])
 
   // Wallet state
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
@@ -266,6 +473,11 @@ export function CheckoutForm() {
       tabDirectionRef.current = METHOD_ORDER[next] >= METHOD_ORDER[prev] ? 1 : -1
       return next
     })
+    if (next !== 'upi') {
+      setQrRevealed(false)
+      setLaunchingApp(null)
+      if (launchTimeoutRef.current) clearTimeout(launchTimeoutRef.current)
+    }
   }, [])
 
   // Derived UPI validation
@@ -477,8 +689,57 @@ export function CheckoutForm() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -30, scale: 0.97 }}
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative w-full max-w-[420px] mx-auto"
                   >
-                    <UpiIllustration />
+                    {/* QR card — hidden by default, emerges from behind the main card's
+                        bottom-right corner so it reads as a second card in the stack. */}
+                    <AnimatePresence>
+                      {selectedUpiApp && qrRevealed && (
+                        <motion.div
+                          key="qr-card"
+                          className="absolute"
+                          style={{ top: '56%', right: '-12%', width: '48%', zIndex: 0 }}
+                          initial={{ opacity: 0, scale: 0.6, rotate: -20, y: -34, x: -14, filter: 'blur(18px)' }}
+                          animate={{ opacity: 1, scale: 1, rotate: -7, y: 30, x: 16, filter: 'blur(0px)' }}
+                          exit={{ opacity: 0, scale: 0.58, rotate: -22, y: -28, x: -10, filter: 'blur(14px)' }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 22, mass: 0.85 }}
+                        >
+                          <UpiAppQrCard appId={selectedUpiApp} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="relative z-10">
+                      <UpiIllustration />
+                    </div>
+
+                    {/* Show / hide QR trigger — appears once an app is chosen */}
+                    <AnimatePresence>
+                      {selectedUpiApp && (
+                        <motion.button
+                          key="qr-toggle"
+                          type="button"
+                          onClick={() => setQrRevealed(v => !v)}
+                          className="absolute z-20 flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-bold text-slate-800"
+                          style={{
+                            bottom: -14,
+                            right: 18,
+                            background: '#fff',
+                            boxShadow: '0 8px 20px rgba(15,23,42,0.18), 0 0 0 1px rgba(226,232,240,0.9)',
+                          }}
+                          initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.9 }}
+                          transition={{ type: 'spring', stiffness: 340, damping: 26 }}
+                          whileTap={{ scale: 0.94 }}
+                        >
+                          <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0">
+                            <UpiQrSvg size={13} />
+                          </span>
+                          {qrRevealed ? 'Hide QR' : 'Show QR'}
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -614,37 +875,57 @@ export function CheckoutForm() {
                       className="flex flex-col gap-4"
                     >
                       {/* UPI App quick-select */}
-                      <div>
-                        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Pay via app</p>
-                        <div className="grid grid-cols-3 gap-2">
+                      <div className="relative" style={{ minHeight: 108 }}>
+                        <motion.p
+                          className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2"
+                          animate={{ opacity: launchingApp ? 0 : 1 }}
+                          transition={{ duration: 0.18 }}
+                        >
+                          Pay via app
+                        </motion.p>
+                        <div className={launchingApp ? 'flex items-end justify-center gap-1.5 pt-3' : 'grid grid-cols-3 gap-2'}>
                           {UPI_APPS.map(app => {
                             const Logo = UPI_LOGOS[app.id]
                             const selected = selectedUpiApp === app.id
+                            const isLaunching = launchingApp === app.id
                             return (
-                              <button
+                              <motion.button
+                                layout
                                 key={app.id}
                                 type="button"
-                                onClick={() => {
-                                  setSelectedUpiApp(app.id === selectedUpiApp ? null : app.id)
-                                  if (app.id !== selectedUpiApp && !upiId.includes('@')) {
-                                    setUpiId(prev => prev || `name${app.handle}`)
-                                  }
-                                }}
-                                className={[
-                                  'flex items-center gap-2.5 px-3 py-2.5 rounded-none border transition-colors duration-150 text-left',
-                                  selected
-                                    ? 'border-indigo-300 bg-indigo-50'
-                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50',
-                                ].join(' ')}
+                                onClick={() => selectUpiApp(app.id)}
+                                disabled={!!launchingApp}
+                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                className={
+                                  launchingApp
+                                    ? 'flex items-center justify-center rounded-full border border-slate-100 overflow-hidden flex-shrink-0 bg-white'
+                                    : [
+                                        'flex items-center gap-2.5 px-3 py-2.5 rounded-none border transition-colors duration-150 text-left',
+                                        selected
+                                          ? 'border-indigo-300 bg-indigo-50'
+                                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50',
+                                      ].join(' ')
+                                }
+                                style={
+                                  launchingApp
+                                    ? { width: 30, height: 30, opacity: isLaunching ? 0 : 1 }
+                                    : { opacity: 1 }
+                                }
                               >
-                                <div className="w-7 h-7 rounded-none overflow-hidden flex-shrink-0 border border-slate-100">
-                                  {Logo ? <Logo size={28} /> : null}
-                                </div>
-                                <span className="text-[11.5px] font-semibold text-slate-700 truncate">{app.name}</span>
-                              </button>
+                                <motion.div
+                                  layout
+                                  className={launchingApp ? 'w-full h-full flex items-center justify-center' : 'w-7 h-7 rounded-none overflow-hidden flex-shrink-0 border border-slate-100'}
+                                >
+                                  {Logo ? <Logo size={launchingApp ? 30 : 28} /> : null}
+                                </motion.div>
+                                {!launchingApp && <span className="text-[11.5px] font-semibold text-slate-700 truncate">{app.name}</span>}
+                              </motion.button>
                             )
                           })}
                         </div>
+                        <AnimatePresence>
+                          {launchingApp && <AppLaunchOverlay key={launchingApp} appId={launchingApp} />}
+                        </AnimatePresence>
                       </div>
 
                       {/* UPI ID input */}
@@ -654,7 +935,7 @@ export function CheckoutForm() {
                           <input
                             type="text"
                             value={upiId}
-                            onChange={e => { setUpiId(e.target.value); setSelectedUpiApp(null) }}
+                            onChange={e => { setUpiId(e.target.value); setSelectedUpiApp(null); setQrRevealed(false) }}
                             onBlur={() => setUpiIdTouched(true)}
                             placeholder={selectedUpiApp ? `yourname${UPI_APPS.find(a=>a.id===selectedUpiApp)?.handle}` : 'yourname@upi'}
                             className={[
