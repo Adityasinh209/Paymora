@@ -11,6 +11,7 @@ import { useCardBrand } from '../hooks/useCardBrand'
 import { useCardValidation } from '../hooks/useCardValidation'
 import { useCardFunding } from '../hooks/useCardFunding'
 import { fundingLabel } from '../utils/cardFunding'
+import { playPayChime, unlockPayAudio } from '../utils/playPayChime'
 
 const LockIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -235,6 +236,17 @@ export function CheckoutForm() {
   const finalizingTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const centerTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
+  // Unlock Web Audio on first interaction (required after deploy / HTTPS)
+  useEffect(() => {
+    const unlock = () => unlockPayAudio()
+    window.addEventListener('pointerdown', unlock, { once: true, passive: true })
+    window.addEventListener('keydown', unlock, { once: true })
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
+  }, [])
+
   // ── Payment method state ───────────────────────────────────────
   const [activeMethod, setActiveMethod] = useState<PaymentMethod>('card')
   const tabDirectionRef = useRef<number>(1)
@@ -355,6 +367,8 @@ export function CheckoutForm() {
         if (!d || d.length !== 10) return
       }
 
+      unlockPayAudio()
+      void playPayChime()
       setPhase('processing')
       centerTimeoutRef.current = setTimeout(() => setCardCentered(true), 90)
       finalizingTimeoutRef.current = setTimeout(() => setPhase('finalizing'), 2200)

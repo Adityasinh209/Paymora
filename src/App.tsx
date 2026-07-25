@@ -24,7 +24,7 @@ export default function App() {
               </svg>
             </div>
             <span className="font-display text-[15px] font-bold text-slate-700 tracking-tight">
-              SecurePay
+              Paymora
             </span>
           </div>
 
@@ -40,7 +40,7 @@ export default function App() {
 
         {/* Footer */}
         <footer className="mt-5 sm:mt-6 text-center text-[12px] text-slate-400/80 font-medium">
-          256-bit SSL encryption · PCI DSS compliant · Powered by SecurePay
+          256-bit SSL encryption · PCI DSS compliant · Powered by Paymora
         </footer>
       </main>
     </>

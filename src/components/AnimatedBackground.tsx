@@ -13,7 +13,7 @@ const CARD_SKINS: CardSkin[] = [
   { brand: 'AMEX', gradient: 'linear-gradient(145deg, #006FCF 0%, #004A9A 70%, #003580 100%)' },
   { brand: 'RuPay', gradient: 'linear-gradient(140deg, #083D0E 0%, #1B5E20 55%, #0D3B10 100%)' },
   { brand: 'DISC', gradient: 'linear-gradient(140deg, #212121 0%, #2a1800 70%, #1c1100 100%)' },
-  { brand: 'SECURE', gradient: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)' },
+  { brand: 'PAYMORA', gradient: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)' },
   { brand: 'MAESTRO', gradient: 'linear-gradient(145deg, #0D1B5E 0%, #1A237E 50%, #283593 100%)' },
 ]
 
@@ -185,7 +185,7 @@ function BgCard({
             CARD HOLDER
           </div>
           <div style={{ color: 'rgba(255,255,255,0.88)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
-            SECURE PAY
+            PAYMORA
           </div>
         </div>
         <div className="text-right">
