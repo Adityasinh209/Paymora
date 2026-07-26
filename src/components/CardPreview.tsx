@@ -697,9 +697,8 @@ export const CardPreview = memo(function CardPreview({
                   <span
                     className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-[0.14em] text-white/95"
                     style={{
-                      background: 'rgba(255,255,255,0.18)',
-                      border: '1px solid rgba(255,255,255,0.28)',
-                      backdropFilter: 'blur(6px)',
+                      background: 'rgba(255,255,255,0.25)',
+                      border: '1px solid rgba(255,255,255,0.35)',
                       textShadow: '0 1px 2px rgba(0,0,0,0.35)',
                     }}
                   >

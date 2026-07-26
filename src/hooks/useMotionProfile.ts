@@ -20,6 +20,11 @@ export type MotionProfile = {
   fade: { duration: number; ease: [number, number, number, number] }
   /** Tab / panel slide */
   slide: { duration: number; ease: [number, number, number, number] }
+  /**
+   * Inline style to promote an element to its own compositor layer.
+   * Empty on mobile — over-compositing exhausts GPU memory on phones.
+   */
+  gpuLayer: CSSProperties
 }
 
 function detectLowPower(isNarrow: boolean): boolean {
@@ -39,6 +44,13 @@ function detectLowPower(isNarrow: boolean): boolean {
   }
   if (isNarrow) return true
   return false
+}
+
+/** Promote an element to its own compositor layer (transform/opacity only). */
+export const GPU_LAYER: CSSProperties = {
+  transform: 'translateZ(0)',
+  backfaceVisibility: 'hidden',
+  WebkitBackfaceVisibility: 'hidden',
 }
 
 /**
@@ -73,13 +85,7 @@ export function useMotionProfile(): MotionProfile {
         duration: lowPower ? 0.22 : 0.28,
         ease: [0.22, 1, 0.36, 1],
       },
+      gpuLayer: lowPower ? {} : GPU_LAYER,
     }
   }, [reduced, isNarrow])
-}
-
-/** Promote an element to its own compositor layer (transform/opacity only). */
-export const GPU_LAYER: CSSProperties = {
-  transform: 'translateZ(0)',
-  backfaceVisibility: 'hidden',
-  WebkitBackfaceVisibility: 'hidden',
 }

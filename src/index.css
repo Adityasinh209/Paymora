@@ -83,14 +83,25 @@ body {
       0 1px 0 rgba(255, 255, 255, 0.8) inset;
   }
 
+  /* Desktop: full glassmorphism. Mobile: solid white — backdrop-filter
+     causes a repaint every frame when background cards are animating. */
   .glass-strong {
-    background: var(--surface-strong);
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    background: rgba(255, 255, 255, 0.97);
     border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow:
-      0 20px 60px rgba(0, 0, 0, 0.08),
+      0 8px 32px rgba(0, 0, 0, 0.10),
       0 1px 0 rgba(255, 255, 255, 0.95) inset;
+  }
+
+  @media (min-width: 640px) {
+    .glass-strong {
+      background: var(--surface-strong);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.08),
+        0 1px 0 rgba(255, 255, 255, 0.95) inset;
+    }
   }
 
   /* Premium input base */
@@ -195,10 +206,18 @@ body {
 }
 
 /* ── GPU-friendly animated layers ──────────────────────────────── */
+/* Mobile: backface-visibility only — too many translateZ(0) exhaust
+   compositor memory on phones, causing fallback and worse jank.
+   Desktop/tablet: promote to own layer for smoother transform animations. */
 .gpu-layer {
-  transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+
+@media (min-width: 640px) {
+  .gpu-layer {
+    transform: translateZ(0);
+  }
 }
 
 /* Wallet brand orbit — CSS animation (compositor-friendly) */
@@ -212,8 +231,9 @@ body {
 }
 
 .wallet-orbit-dash {
+  /* stroke-dashoffset is not GPU-accelerated — skip will-change hint
+     to avoid wasting a compositor layer for no benefit */
   animation: wallet-orbit 1.55s linear infinite;
-  will-change: stroke-dashoffset;
 }
 
 /* ── Clockwise Indian tricolor ring around card ────────────────── */

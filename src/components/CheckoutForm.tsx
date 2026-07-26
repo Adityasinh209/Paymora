@@ -1157,22 +1157,23 @@ export function CheckoutForm() {
                                 animate={{
                                   opacity: 1,
                                   y: selected ? -2 : 0,
-                                  borderColor: selected ? 'transparent' : 'rgb(226 232 240)',
-                                  backgroundColor: selected ? `${w.color}12` : '#ffffff',
                                 }}
                                 transition={{
                                   opacity: { delay: motionProfile.lowPower ? 0 : i * 0.03, ...motionProfile.fade },
                                   y: motionProfile.springSnappy,
-                                  borderColor: motionProfile.fade,
-                                  backgroundColor: motionProfile.fade,
                                 }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelectedWallet(prev => (prev === w.id ? null : w.id))}
                                 className="relative flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 min-h-[72px] sm:min-h-[88px] min-w-0 rounded-none border outline-none overflow-visible gpu-layer"
                                 style={{
                                   borderWidth: 1.5,
+                                  /* CSS transitions for color/shadow — paint props stay off the compositor */
+                                  borderColor: selected ? 'transparent' : 'rgb(226 232 240)',
+                                  backgroundColor: selected ? `${w.color}12` : '#ffffff',
                                   boxShadow: selected ? `0 8px 18px ${w.color}28` : 'none',
-                                  transition: motionProfile.reduced ? 'none' : 'box-shadow 0.2s ease',
+                                  transition: motionProfile.reduced
+                                    ? 'none'
+                                    : `border-color ${motionProfile.fade.duration}s ease, background-color ${motionProfile.fade.duration}s ease, box-shadow 0.2s ease`,
                                   ...GPU_LAYER,
                                 }}
                                 aria-pressed={selected}
@@ -1359,38 +1360,45 @@ export function CheckoutForm() {
   )
 }
 
-/** Clockwise-rotating Indian flag tricolor glow → green on finalizing */
+/** Clockwise-rotating Indian flag tricolor glow → green on finalizing.
+ *  Mobile: only the crisp perimeter ring (no blur layers — they tank mobile GPUs).
+ *  Desktop: full three-layer bloom kept intact.
+ */
 function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
+  const { lowPower } = useMotionProfile()
   const conic =
     'conic-gradient(from 0deg, #FF9933 0%, #FFB347 14%, #fff 30%, #fff 50%, #138808 66%, #0B5C05 82%, #FF9933 100%)'
 
   return (
     <motion.div
       className="absolute pointer-events-none z-0"
-      style={{ inset: -22 }}
+      style={{ inset: -22, ...GPU_LAYER }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5 } }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      exit={{ opacity: 0, transition: { duration: 0.4 } }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
       aria-hidden="true"
     >
-      {/* ── Outer diffuse bloom */}
-      <div className="absolute inset-0 rounded-[36px] overflow-hidden">
-        <div
-          className="tricolor-spin absolute left-1/2 top-1/2"
-          style={{
-            width: '200%',
-            height: '200%',
-            marginLeft: '-100%',
-            marginTop: '-100%',
-            background: conic,
-            filter: 'blur(32px)',
-            opacity: 0.65,
-          }}
-        />
-      </div>
+      {/* ── Outer diffuse bloom — desktop only (blur is expensive) */}
+      {!lowPower && (
+        <div className="absolute inset-0 rounded-[36px] overflow-hidden">
+          <div
+            className="tricolor-spin absolute left-1/2 top-1/2"
+            style={{
+              width: '200%',
+              height: '200%',
+              marginLeft: '-100%',
+              marginTop: '-100%',
+              background: conic,
+              filter: 'blur(32px)',
+              opacity: 0.55,
+              ...GPU_LAYER,
+            }}
+          />
+        </div>
+      )}
 
-      {/* ── Crisp perimeter ring */}
+      {/* ── Crisp perimeter ring — always shown */}
       <div
         className="absolute overflow-hidden rounded-[26px]"
         style={{ inset: 12 }}
@@ -1403,54 +1411,61 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
             marginLeft: '-86%',
             marginTop: '-86%',
             background: conic,
-            filter: 'blur(1px)',
-            opacity: 0.9,
+            filter: lowPower ? 'none' : 'blur(1px)',
+            opacity: 0.92,
+            ...GPU_LAYER,
           }}
         />
       </div>
 
-      {/* ── Soft moving tip highlight */}
-      <div
-        className="absolute overflow-hidden rounded-[26px]"
-        style={{ inset: 12 }}
-      >
+      {/* ── Tip highlight — desktop only */}
+      {!lowPower && (
         <div
-          className="tricolor-spin absolute left-1/2 top-1/2"
-          style={{
-            width: '172%',
-            height: '172%',
-            marginLeft: '-86%',
-            marginTop: '-86%',
-            background:
-              'conic-gradient(from 0deg, transparent 0%, transparent 74%, rgba(255,255,255,0.7) 84%, rgba(255,220,100,0.9) 90%, transparent 100%)',
-            filter: 'blur(3px)',
-          }}
-        />
-      </div>
+          className="absolute overflow-hidden rounded-[26px]"
+          style={{ inset: 12 }}
+        >
+          <div
+            className="tricolor-spin absolute left-1/2 top-1/2"
+            style={{
+              width: '172%',
+              height: '172%',
+              marginLeft: '-86%',
+              marginTop: '-86%',
+              background:
+                'conic-gradient(from 0deg, transparent 0%, transparent 74%, rgba(255,255,255,0.7) 84%, rgba(255,220,100,0.9) 90%, transparent 100%)',
+              filter: 'blur(2px)',
+              ...GPU_LAYER,
+            }}
+          />
+        </div>
+      )}
 
       {/* ── Green success glow fades in when finalizing */}
       <motion.div
         className="absolute inset-0 rounded-[36px] overflow-hidden pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: finalizing ? 1 : 0 }}
-        transition={{ duration: 0.9, ease: 'easeInOut' }}
+        transition={{ duration: 0.8, ease: 'easeInOut' }}
       >
-        {/* Pulsing green outer bloom */}
-        <motion.div
-          className="absolute left-1/2 top-1/2"
-          style={{
-            width: '200%',
-            height: '200%',
-            marginLeft: '-100%',
-            marginTop: '-100%',
-            background:
-              'radial-gradient(ellipse 70% 70% at 50% 50%, #22c55e 0%, #16a34a 28%, #15803d 55%, transparent 80%)',
-            filter: 'blur(30px)',
-          }}
-          animate={finalizing ? { scale: [1, 1.08, 1] } : {}}
-          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        {/* Green ring that continues with tricolor spin */}
+        {/* Green outer bloom — desktop only */}
+        {!lowPower && (
+          <motion.div
+            className="absolute left-1/2 top-1/2"
+            style={{
+              width: '200%',
+              height: '200%',
+              marginLeft: '-100%',
+              marginTop: '-100%',
+              background:
+                'radial-gradient(ellipse 70% 70% at 50% 50%, #22c55e 0%, #16a34a 28%, #15803d 55%, transparent 80%)',
+              filter: 'blur(28px)',
+              ...GPU_LAYER,
+            }}
+            animate={finalizing ? { scale: [1, 1.06, 1] } : {}}
+            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        )}
+        {/* Green ring */}
         <div
           className="tricolor-spin absolute left-1/2 top-1/2"
           style={{
@@ -1460,22 +1475,26 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
             marginTop: '-86%',
             background:
               'conic-gradient(from 0deg, #22c55e 0%, #4ade80 25%, #86efac 50%, #4ade80 75%, #22c55e 100%)',
-            filter: 'blur(1px)',
+            filter: lowPower ? 'none' : 'blur(1px)',
+            ...GPU_LAYER,
           }}
         />
-        {/* Bright green traveling tip */}
-        <div
-          className="tricolor-spin absolute left-1/2 top-1/2"
-          style={{
-            width: '172%',
-            height: '172%',
-            marginLeft: '-86%',
-            marginTop: '-86%',
-            background:
-              'conic-gradient(from 0deg, transparent 0%, transparent 80%, rgba(134,239,172,0.8) 88%, rgba(255,255,255,0.95) 92%, transparent 100%)',
-            filter: 'blur(2px)',
-          }}
-        />
+        {/* Traveling tip — desktop only */}
+        {!lowPower && (
+          <div
+            className="tricolor-spin absolute left-1/2 top-1/2"
+            style={{
+              width: '172%',
+              height: '172%',
+              marginLeft: '-86%',
+              marginTop: '-86%',
+              background:
+                'conic-gradient(from 0deg, transparent 0%, transparent 80%, rgba(134,239,172,0.8) 88%, rgba(255,255,255,0.95) 92%, transparent 100%)',
+              filter: 'blur(2px)',
+              ...GPU_LAYER,
+            }}
+          />
+        )}
       </motion.div>
     </motion.div>
   )
@@ -1494,9 +1513,13 @@ function SuccessModal({ onGoHome }: { onGoHome: () => void }) {
       aria-modal="true"
       aria-label="Payment successful"
     >
-      {/* Frosted backdrop */}
+      {/* Backdrop — solid on mobile (blur costs a repaint), frosted on desktop */}
       <div
         className="absolute inset-0"
+        style={{ background: 'rgba(255,255,255,0.88)' }}
+      />
+      <div
+        className="absolute inset-0 hidden sm:block"
         style={{
           background: 'rgba(255,255,255,0.55)',
           backdropFilter: 'blur(10px)',
