@@ -41,6 +41,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Prevent iOS rubber-band sideways scroll from absolute/transform children */
+  overflow-x: clip;
 }
 
 body {
@@ -49,13 +51,24 @@ body {
   background: #dbeafe;
   color: var(--text-primary);
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
+  /* Comfortable tap targets on touch devices */
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {
   min-height: 100dvh;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
+}
+
+/* Fluid type helpers for very narrow phones */
+@media (max-width: 359px) {
+  .font-display.text-2xl {
+    font-size: 1.25rem;
+  }
 }
 
 /* ── Glass Surface Utility ─────────────────────────────────────── */

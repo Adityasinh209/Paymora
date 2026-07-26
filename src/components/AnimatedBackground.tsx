@@ -95,15 +95,17 @@ function buildRandomCards(count = 8): RandomCard[] {
 function BgCard({
   card,
   prefersReduced,
+  hideOnMobile = false,
 }: {
   card: RandomCard
   prefersReduced: boolean
+  hideOnMobile?: boolean
 }) {
   return (
     <motion.div
-      className="absolute select-none"
+      className={['absolute select-none', hideOnMobile ? 'hidden sm:block' : ''].join(' ')}
       style={{
-        width: 210,
+        width: 'min(210px, 42vw)',
         aspectRatio: '1.586 / 1',
         borderRadius: 14,
         background: card.skin.gradient,
@@ -236,7 +238,12 @@ export const AnimatedBackground = memo(function AnimatedBackground() {
       />
 
       {cards.map((card) => (
-        <BgCard key={card.id} card={card} prefersReduced={prefersReduced} />
+        <BgCard
+          key={card.id}
+          card={card}
+          prefersReduced={prefersReduced}
+          hideOnMobile={card.id >= 4}
+        />
       ))}
 
       {/* Keep the checkout center readable */}

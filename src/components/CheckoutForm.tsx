@@ -7,6 +7,7 @@ import { CardHolderInput } from './CardHolderInput'
 import { CVVInput } from './CVVInput'
 import { SmallBrandBadge } from './CardBrandLogo'
 import { UPI_LOGOS, WALLET_LOGOS } from './PaymentLogos'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useCardBrand } from '../hooks/useCardBrand'
 import { useCardValidation } from '../hooks/useCardValidation'
 import { useCardFunding } from '../hooks/useCardFunding'
@@ -133,8 +134,8 @@ function UpiAppQrCard({ appId }: { appId: string }) {
         </div>
         <span className="text-[10.5px] font-bold text-slate-700 tracking-tight">{app?.name}</span>
       </div>
-      <div className="p-2 rounded-lg bg-white border border-slate-100" style={{ boxShadow: `0 0 0 1px ${accent}22` }}>
-        <UpiQrSvg dark size={64} />
+      <div className="p-1.5 sm:p-2 rounded-lg bg-white border border-slate-100 w-[72%] max-w-[72px]" style={{ boxShadow: `0 0 0 1px ${accent}22` }}>
+        <UpiQrSvg dark size={56} />
       </div>
       <span className="text-[8.5px] font-bold text-slate-400 tracking-[0.14em] uppercase">Scan to Pay</span>
       <div className="absolute inset-x-0 bottom-0 h-1" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
@@ -321,34 +322,34 @@ function UpiIllustration() {
       <div className="absolute" style={{ bottom: '-20%', left: '-10%', width: '50%', height: '80%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)' }}/>
       <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
-      <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div className="overflow-hidden border border-white/20 shadow-sm" style={{ width: 32, height: 32 }}>
-              {(() => { const Logo = UPI_LOGOS.bhim; return <Logo size={32} /> })()}
+      <div className="absolute inset-0 flex flex-col justify-between p-3.5 sm:p-5 md:p-6">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="overflow-hidden border border-white/20 shadow-sm flex-shrink-0" style={{ width: 28, height: 28 }}>
+              {(() => { const Logo = UPI_LOGOS.bhim; return <Logo size={28} /> })()}
             </div>
-            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.06em' }}>BHIM UPI</span>
+            <span className="truncate" style={{ color: '#fff', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}>BHIM UPI</span>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)', padding: '3px 10px' }}>
-            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: 800, letterSpacing: '0.15em' }}>🇮🇳 INDIA</span>
+          <div className="flex-shrink-0" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)', padding: '3px 8px' }}>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em' }}>🇮🇳 INDIA</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-5">
-          <div style={{ background: 'rgba(255,255,255,0.05)', padding: 6, border: '1px solid rgba(255,255,255,0.1)' }}>
-            <UpiQrSvg />
+        <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+          <div className="flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)', padding: 5, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <UpiQrSvg size={64} />
           </div>
-          <div className="flex flex-col gap-2 flex-1">
+          <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0">
             <div>
-              <p style={{ color: '#fff', fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>Scan &amp; Pay</p>
-              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginTop: 3 }}>Any UPI app · Instant transfer</p>
+              <p style={{ color: '#fff', fontSize: 14, fontWeight: 800, lineHeight: 1.2 }}>Scan &amp; Pay</p>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, marginTop: 2 }}>Any UPI app · Instant transfer</p>
             </div>
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-1 sm:gap-1.5 flex-wrap">
               {UPI_APPS.map(app => {
                 const Logo = UPI_LOGOS[app.id]
                 return (
-                  <div key={app.id} className="overflow-hidden border border-white/15 shadow-sm" style={{ width: 26, height: 26 }} title={app.name}>
-                    {Logo ? <Logo size={26} /> : null}
+                  <div key={app.id} className="overflow-hidden border border-white/15 shadow-sm" style={{ width: 22, height: 22 }} title={app.name}>
+                    {Logo ? <Logo size={22} /> : null}
                   </div>
                 )
               })}
@@ -356,9 +357,9 @@ function UpiIllustration() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Instant · Zero Fee · Secure</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.08)', padding: '2px 8px' }}>
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <span className="truncate" style={{ color: 'rgba(255,255,255,0.28)', fontSize: 8, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Instant · Zero Fee · Secure</span>
+          <div className="flex-shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.08)', padding: '2px 8px' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }}/>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: 600 }}>Live</span>
           </div>
@@ -406,11 +407,11 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
       />
       <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
-      <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
-        <div className="flex items-start justify-between">
-          <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.05em' }}>Digital Wallets</span>
-          <div style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', padding: '3px 10px' }}>
-            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em' }}>6 WALLETS</span>
+      <div className="absolute inset-0 flex flex-col justify-between p-3.5 sm:p-5 md:p-6">
+        <div className="flex items-start justify-between gap-2">
+          <span className="truncate" style={{ color: '#fff', fontSize: 13, fontWeight: 700, letterSpacing: '0.05em' }}>Digital Wallets</span>
+          <div className="flex-shrink-0" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', padding: '3px 8px' }}>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em' }}>6 WALLETS</span>
           </div>
         </div>
 
@@ -423,7 +424,7 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
               return (
                 <motion.div
                   key={id}
-                  className="absolute overflow-hidden flex items-center gap-2 px-3.5"
+                  className="absolute overflow-hidden flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5"
                   initial={{ opacity: 0, y: 28, scale: 0.88, rotate: (i - 1) * 6 }}
                   animate={{
                     opacity: 1,
@@ -450,22 +451,22 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
                 >
                   <motion.div
                     className="overflow-hidden flex-shrink-0"
-                    style={{ width: 24, height: 24, border: '1px solid rgba(255,255,255,0.25)' }}
+                    style={{ width: 22, height: 22, border: '1px solid rgba(255,255,255,0.25)' }}
                     animate={active ? { scale: [1, 1.18, 1] } : { scale: 1 }}
                     transition={active ? { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] } : { duration: 0.2 }}
                   >
-                    {Logo ? <Logo size={24} /> : null}
+                    {Logo ? <Logo size={22} /> : null}
                   </motion.div>
-                  <span style={{ color: 'rgba(255,255,255,0.95)', fontSize: 11, fontWeight: 700 }}>{w.name}</span>
+                  <span className="truncate" style={{ color: 'rgba(255,255,255,0.95)', fontSize: 11, fontWeight: 700 }}>{w.name}</span>
                 </motion.div>
               )
             })}
           </AnimatePresence>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span style={{ color: 'rgba(255,255,255,0.28)', fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Instant Balance · Cashback</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.08)', padding: '2px 8px' }}>
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <span className="truncate" style={{ color: 'rgba(255,255,255,0.28)', fontSize: 8, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Instant Balance · Cashback</span>
+          <div className="flex-shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.08)', padding: '2px 8px' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }}/>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: 600 }}>Linked</span>
           </div>
@@ -703,14 +704,17 @@ export function CheckoutForm() {
     activeMethod === 'upi'    ? 'Send UPI Request' :
     selectedWallet ? `Pay via ${WALLETS.find(w => w.id === selectedWallet)?.name ?? 'Wallet'}` : 'Select a Wallet'
 
+  const isNarrow = useMediaQuery('(max-width: 639px)')
+  const isCompact = useMediaQuery('(max-width: 1023px)')
+
   return (
-    <div className="w-full max-w-[960px] mx-auto px-4 sm:px-0">
+    <div className="w-full max-w-[960px] mx-auto min-w-0">
       <div
         className={[
-          'relative flex gap-8 lg:gap-12',
+          'relative flex gap-5 sm:gap-6 lg:gap-10 xl:gap-12',
           isCentered
-            ? 'flex-col items-center justify-center min-h-[280px]'
-            : 'flex-col lg:flex-row lg:items-center',
+            ? 'flex-col items-center justify-center min-h-[220px] sm:min-h-[280px]'
+            : 'flex-col lg:flex-row lg:items-start xl:items-center',
         ].join(' ')}
       >
         {/* ── Left Panel (Card / UPI / Wallet illustration) ─── */}
@@ -719,8 +723,8 @@ export function CheckoutForm() {
           transition={{ type: 'spring', stiffness: 180, damping: 24, mass: 0.9 }}
           className={
             isCentered
-              ? 'w-full max-w-[420px]'
-              : 'w-full lg:w-[420px] lg:flex-shrink-0 lg:sticky lg:top-8'
+              ? 'w-full max-w-[min(420px,100%)]'
+              : 'w-full max-w-[420px] mx-auto lg:mx-0 lg:w-[min(420px,42%)] lg:max-w-[420px] lg:flex-shrink-0 lg:sticky lg:top-6'
           }
         >
           <div className="relative">
@@ -761,15 +765,19 @@ export function CheckoutForm() {
                     exit={{ opacity: 0, x: -30, scale: 0.97 }}
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     className="relative w-full max-w-[420px] mx-auto overflow-visible"
-                    style={{ paddingBottom: selectedUpiApp ? 28 : 0 }}
+                    style={{
+                      paddingBottom: selectedUpiApp ? 28 : 0,
+                      // Keep peel-out QR inside the viewport on narrow screens
+                      paddingRight: qrRevealed ? (isNarrow ? 12 : 8) : 0,
+                    }}
                   >
                     {/* Main UPI card — slides left to clear the top-right for the QR */}
                     <motion.div
                       className="relative z-10"
                       initial={false}
                       animate={{
-                        x: qrRevealed ? -40 : 0,
-                        scale: qrRevealed ? 0.9 : 1,
+                        x: qrRevealed ? (isNarrow ? '-6%' : isCompact ? '-8%' : -40) : 0,
+                        scale: qrRevealed ? (isNarrow ? 0.94 : 0.9) : 1,
                       }}
                       transition={{ type: 'spring', stiffness: 280, damping: 26, mass: 0.8 }}
                       style={{ transformOrigin: 'left center', willChange: 'transform' }}
@@ -785,16 +793,16 @@ export function CheckoutForm() {
                           key="qr-card"
                           className="absolute z-[15] pointer-events-none"
                           style={{
-                            top: '-10%',
-                            right: '2%',
-                            width: '40%',
-                            maxWidth: 168,
+                            top: isNarrow ? '-6%' : '-10%',
+                            right: isNarrow ? '0%' : '2%',
+                            width: isNarrow ? '36%' : '40%',
+                            maxWidth: isNarrow ? 128 : 168,
                           }}
                           initial={{
                             opacity: 0,
                             scale: 0.45,
-                            x: -56,
-                            y: 42,
+                            x: isNarrow ? -28 : -56,
+                            y: isNarrow ? 28 : 42,
                             rotate: 12,
                             filter: 'blur(14px)',
                           }}
@@ -803,14 +811,14 @@ export function CheckoutForm() {
                             scale: 1,
                             x: 0,
                             y: 0,
-                            rotate: 4,
+                            rotate: isNarrow ? 2 : 4,
                             filter: 'blur(0px)',
                           }}
                           exit={{
                             opacity: 0,
                             scale: 0.45,
-                            x: -48,
-                            y: 36,
+                            x: isNarrow ? -24 : -48,
+                            y: isNarrow ? 24 : 36,
                             rotate: 12,
                             filter: 'blur(12px)',
                             transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
@@ -892,21 +900,22 @@ export function CheckoutForm() {
             <form
               onSubmit={handleSubmit}
               noValidate
-              className="glass-strong rounded-2xl p-6 sm:p-8 flex flex-col gap-5"
+              className="glass-strong rounded-2xl p-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-5"
             >
               {/* Title */}
-              <div className="flex items-center justify-between mb-1">
-                <div>
-                  <h2 className="font-display text-xl font-bold text-slate-900 tracking-tight">
+              <div className="flex items-start sm:items-center justify-between gap-3 mb-0.5 sm:mb-1">
+                <div className="min-w-0">
+                  <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                     Payment Details
                   </h2>
-                  <p className="text-[13px] text-slate-400 mt-0.5 font-medium">
+                  <p className="text-[12px] sm:text-[13px] text-slate-400 mt-0.5 font-medium leading-snug">
                     All transactions are encrypted and secure
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 text-slate-400 text-[12px] font-semibold bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                <div className="flex items-center gap-1.5 text-slate-400 text-[11px] sm:text-[12px] font-semibold bg-slate-50 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-100 flex-shrink-0">
                   <LockIcon />
-                  SSL Secured
+                  <span className="sm:hidden">SSL</span>
+                  <span className="hidden sm:inline">SSL Secured</span>
                 </div>
               </div>
 
@@ -918,7 +927,7 @@ export function CheckoutForm() {
                     type="button"
                     onClick={() => switchMethod(m)}
                     className={[
-                      'flex-1 py-2.5 rounded-lg text-[12.5px] font-semibold tracking-[0.12em] uppercase transition-all duration-200',
+                      'flex-1 min-h-[44px] py-2 sm:py-2.5 rounded-lg text-[11px] sm:text-[12.5px] font-semibold tracking-[0.1em] sm:tracking-[0.12em] uppercase transition-all duration-200',
                       activeMethod === m
                         ? 'bg-white text-slate-900 shadow-sm border border-slate-100'
                         : 'text-slate-400 hover:text-slate-600',
@@ -967,7 +976,7 @@ export function CheckoutForm() {
                         )}
                       </AnimatePresence>
                       {/* Expiry + CVV */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
                         <ExpiryInput value={fields.expiry.value} error={fields.expiry.error} valid={fields.expiry.valid} onChange={handleExpiryChange} onBlur={() => touchField('expiry')} />
                         <CVVInput value={fields.cvv.value} cvvLength={brand.cvvLength} error={fields.cvv.error} valid={fields.cvv.valid} onChange={handleCVVChange} onBlur={handleCVVBlur} onFocus={handleCVVFocus} />
                       </div>
@@ -986,7 +995,7 @@ export function CheckoutForm() {
                       className="flex flex-col gap-4"
                     >
                       {/* UPI App quick-select — grid by default; centre-stage while an app is selected */}
-                      <div className="relative" style={{ minHeight: 108 }}>
+                      <div className="relative" style={{ minHeight: isNarrow ? 100 : 108 }}>
                         <motion.p
                           className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2"
                           animate={{ opacity: selectedUpiApp ? 0 : 1 }}
@@ -995,13 +1004,14 @@ export function CheckoutForm() {
                           Pay via app
                         </motion.p>
                         <div
-                          className={selectedUpiApp ? 'flex items-end justify-center gap-1.5' : 'grid grid-cols-3 gap-2'}
-                          style={selectedUpiApp ? { height: 108 } : undefined}
+                          className={selectedUpiApp ? 'flex items-end justify-center gap-1.5' : 'grid grid-cols-3 gap-1.5 sm:gap-2'}
+                          style={selectedUpiApp ? { height: isNarrow ? 100 : 108 } : undefined}
                         >
                           {UPI_APPS.map(app => {
                             const Logo = UPI_LOGOS[app.id]
                             const selected = selectedUpiApp === app.id
                             const staged = !!selectedUpiApp
+                            const stripSize = isNarrow ? 28 : 30
                             return (
                               <motion.button
                                 layout
@@ -1013,7 +1023,7 @@ export function CheckoutForm() {
                                   staged
                                     ? 'flex items-center justify-center rounded-full border border-slate-100 overflow-hidden flex-shrink-0 bg-white'
                                     : [
-                                        'flex items-center gap-2.5 px-3 py-2.5 rounded-none border transition-colors duration-150 text-left',
+                                        'flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] min-w-0 rounded-none border transition-colors duration-150 text-left',
                                         selected
                                           ? 'border-indigo-300 bg-indigo-50'
                                           : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50',
@@ -1024,8 +1034,8 @@ export function CheckoutForm() {
                                     ? selected
                                       ? // Selected app leaves the strip — it lives centre-stage in the overlay.
                                         // Width must stay non-zero or Framer's layout scale-correction breaks.
-                                        { width: 10, height: 30, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const }
-                                      : { width: 30, height: 30, opacity: 1 }
+                                        { width: 10, height: stripSize, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const }
+                                      : { width: stripSize, height: stripSize, opacity: 1 }
                                     : { opacity: 1 }
                                 }
                                 aria-label={app.name}
@@ -1033,11 +1043,11 @@ export function CheckoutForm() {
                               >
                                 <motion.div
                                   layout
-                                  className={staged ? 'w-full h-full flex items-center justify-center' : 'w-7 h-7 rounded-none overflow-hidden flex-shrink-0 border border-slate-100'}
+                                  className={staged ? 'w-full h-full flex items-center justify-center' : 'w-6 h-6 sm:w-7 sm:h-7 rounded-none overflow-hidden flex-shrink-0 border border-slate-100'}
                                 >
-                                  {Logo ? <Logo size={staged ? 30 : 28} /> : null}
+                                  {Logo ? <Logo size={staged ? stripSize : (isNarrow ? 24 : 28)} /> : null}
                                 </motion.div>
-                                {!staged && <span className="text-[11.5px] font-semibold text-slate-700 truncate">{app.name}</span>}
+                                {!staged && <span className="text-[10.5px] sm:text-[11.5px] font-semibold text-slate-700 truncate">{app.name}</span>}
                               </motion.button>
                             )
                           })}
@@ -1116,7 +1126,7 @@ export function CheckoutForm() {
                       {/* Wallet grid */}
                       <div>
                         <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2">Select wallet</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                           {WALLETS.map((w, i) => {
                             const Logo = WALLET_LOGOS[w.id]
                             const selected = selectedWallet === w.id
@@ -1143,7 +1153,7 @@ export function CheckoutForm() {
                                 }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelectedWallet(prev => (prev === w.id ? null : w.id))}
-                                className="relative flex flex-col items-center gap-1.5 py-3 rounded-none border outline-none overflow-visible"
+                                className="relative flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 min-h-[72px] sm:min-h-[88px] min-w-0 rounded-none border outline-none overflow-visible"
                                 style={{ borderWidth: 1.5 }}
                                 aria-pressed={selected}
                               >
@@ -1196,7 +1206,7 @@ export function CheckoutForm() {
                                 </AnimatePresence>
 
                                 <motion.div
-                                  className="relative z-[1] w-9 h-9 rounded-none overflow-hidden border border-slate-100 shadow-sm"
+                                  className="relative z-[1] w-8 h-8 sm:w-9 sm:h-9 rounded-none overflow-hidden border border-slate-100 shadow-sm"
                                   animate={selected ? { scale: [1, 1.16, 1] } : { scale: 1 }}
                                   transition={
                                     selected
@@ -1204,9 +1214,9 @@ export function CheckoutForm() {
                                       : { duration: 0.2 }
                                   }
                                 >
-                                  {Logo ? <Logo size={36} /> : null}
+                                  {Logo ? <Logo size={isNarrow ? 32 : 36} /> : null}
                                 </motion.div>
-                                <span className="relative z-[1] text-[10.5px] font-semibold text-slate-600 text-center leading-tight">
+                                <span className="relative z-[1] text-[9.5px] sm:text-[10.5px] font-semibold text-slate-600 text-center leading-tight px-0.5">
                                   {w.name}
                                 </span>
                               </motion.button>
@@ -1285,7 +1295,7 @@ export function CheckoutForm() {
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 className={[
                   'relative w-full flex items-center justify-center gap-2.5',
-                  'py-3.5 px-6 rounded-xl font-semibold text-[15px] text-white',
+                  'min-h-[48px] py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl font-semibold text-[14px] sm:text-[15px] text-white',
                   'transition-opacity duration-200',
                   !canSubmit ? 'opacity-60' : '',
                 ].join(' ')}
@@ -1312,11 +1322,11 @@ export function CheckoutForm() {
               </motion.button>
 
               {/* Trust logos */}
-              <div className="flex items-center justify-center gap-5 pt-0.5">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-5 pt-0.5">
                 {['Visa', 'Mastercard', 'Amex', 'Discover', 'RuPay'].map((name) => (
                   <span
                     key={name}
-                    className="text-[11px] font-semibold text-slate-300 tracking-wide"
+                    className="text-[10px] sm:text-[11px] font-semibold text-slate-300 tracking-wide"
                   >
                     {name}
                   </span>
