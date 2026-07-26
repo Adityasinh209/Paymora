@@ -184,6 +184,7 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -191,6 +192,28 @@ body {
 ::selection {
   background: hsl(var(--accent-hue), 80%, 92%);
   color: hsl(var(--accent-hue), 70%, 30%);
+}
+
+/* ── GPU-friendly animated layers ──────────────────────────────── */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Wallet brand orbit — CSS animation (compositor-friendly) */
+@keyframes wallet-orbit {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.wallet-orbit-dash {
+  animation: wallet-orbit 1.55s linear infinite;
+  will-change: stroke-dashoffset;
 }
 
 /* ── Clockwise Indian tricolor ring around card ────────────────── */
@@ -207,10 +230,19 @@ body {
   animation: tricolor-spin 5s linear infinite;
   will-change: transform;
   transform-origin: center center;
+  transform: translateZ(0);
+}
+
+/* Lighter glow work on phones — huge CSS blurs tank mobile GPUs */
+@media (max-width: 639px) {
+  .tricolor-spin {
+    animation-duration: 7s;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tricolor-spin {
-    animation: none;
+  .tricolor-spin,
+  .wallet-orbit-dash {
+    animation: none !important;
   }
 }

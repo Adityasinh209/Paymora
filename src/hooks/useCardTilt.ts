@@ -1,5 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useMotionValue, useSpring } from 'framer-motion'
+import { useMediaQuery } from './useMediaQuery'
+import { useReducedMotion } from './useReducedMotion'
 
 interface TiltOptions {
   disabled?: boolean
@@ -7,20 +9,19 @@ interface TiltOptions {
 
 export function useCardTilt({ disabled = false }: TiltOptions = {}) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  const isMobile = useMediaQuery('(max-width: 640px)')
+  const isTablet = useMediaQuery('(max-width: 1024px)')
 
-  const isMobile =
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
-  const isTablet =
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches
-
-  const maxTilt = disabled || isMobile ? 0 : isTablet ? 8 : 15
+  const maxTilt = disabled || reduced || isMobile ? 0 : isTablet ? 6 : 12
 
   const rawRotateX = useMotionValue(0)
   const rawRotateY = useMotionValue(0)
   const shineX = useMotionValue(50)
   const shineY = useMotionValue(50)
 
-  const springConfig = { stiffness: 300, damping: 30, mass: 0.5 }
+  // Soft spring — avoids overshoot on high-refresh displays
+  const springConfig = { stiffness: 220, damping: 28, mass: 0.6 }
   const rotateX = useSpring(rawRotateX, springConfig)
   const rotateY = useSpring(rawRotateY, springConfig)
 
@@ -36,7 +37,6 @@ export function useCardTilt({ disabled = false }: TiltOptions = {}) {
       rawRotateY.set(dx * maxTilt)
       rawRotateX.set(-dy * maxTilt)
 
-      // Shine position as percentage
       shineX.set(((e.clientX - rect.left) / rect.width) * 100)
       shineY.set(((e.clientY - rect.top) / rect.height) * 100)
     },
@@ -54,7 +54,7 @@ export function useCardTilt({ disabled = false }: TiltOptions = {}) {
     const el = containerRef.current
     if (!el || maxTilt === 0) return
 
-    el.addEventListener('mousemove', handleMouseMove)
+    el.addEventListener('mousemove', handleMouseMove, { passive: true })
     el.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {

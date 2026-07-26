@@ -1,9 +1,10 @@
+import { MotionConfig } from 'framer-motion'
 import { AnimatedBackground } from './components/AnimatedBackground'
 import { CheckoutForm } from './components/CheckoutForm'
 
 export default function App() {
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <AnimatedBackground />
 
       <main className="relative min-h-dvh w-full flex flex-col items-center justify-start lg:justify-center pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] sm:pr-[max(1.25rem,env(safe-area-inset-right))]">
@@ -42,6 +43,6 @@ export default function App() {
           <span className="hidden sm:inline">256-bit SSL encryption · PCI DSS compliant · Powered by Paymora</span>
         </footer>
       </main>
-    </>
+    </MotionConfig>
   )
 }

@@ -468,9 +468,9 @@ export const CardPreview = memo(function CardPreview({
 
   const flipTarget = useMotionValue(0)
   const flipSpring = useSpring(flipTarget, {
-    stiffness: 260,
-    damping: 28,
-    mass: 0.8,
+    stiffness: 240,
+    damping: 30,
+    mass: 0.75,
   })
 
   useEffect(() => {

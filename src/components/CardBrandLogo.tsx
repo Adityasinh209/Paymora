@@ -124,10 +124,11 @@ export const CardBrandLogo = memo(function CardBrandLogo({
       <AnimatePresence mode="wait">
         <motion.div
           key={brandId}
-          initial={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.92 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
         >
           <Logo />
         </motion.div>

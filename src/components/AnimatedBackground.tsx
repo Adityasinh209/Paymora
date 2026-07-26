@@ -1,5 +1,6 @@
-import { memo, useMemo, type CSSProperties } from 'react'
+import { memo, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
+import { useMotionProfile } from '../hooks/useMotionProfile'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 
 type CardSkin = {
@@ -103,7 +104,7 @@ function BgCard({
 }) {
   return (
     <motion.div
-      className={['absolute select-none', hideOnMobile ? 'hidden sm:block' : ''].join(' ')}
+      className={['absolute select-none gpu-layer', hideOnMobile ? 'hidden sm:block' : ''].join(' ')}
       style={{
         width: 'min(210px, 42vw)',
         aspectRatio: '1.586 / 1',
@@ -114,6 +115,8 @@ function BgCard({
         rotate: card.baseRotate,
         boxShadow:
           '0 2px 0 rgba(255,255,255,0.16) inset, 0 -1px 0 rgba(0,0,0,0.12) inset, 0 18px 40px rgba(15,23,42,0.14)',
+        transform: 'translateZ(0)',
+        willChange: prefersReduced ? 'auto' : 'transform',
         ...card.style,
       }}
       initial={false}
@@ -125,7 +128,7 @@ function BgCard({
               y: card.y,
               rotate: card.rotate,
               transition: {
-                duration: card.duration,
+                duration: card.duration * 1.15,
                 delay: card.delay,
                 repeat: Infinity,
                 ease: 'easeInOut',
@@ -205,7 +208,18 @@ function BgCard({
 
 export const AnimatedBackground = memo(function AnimatedBackground() {
   const prefersReduced = useReducedMotion()
-  const cards = useMemo(() => buildRandomCards(8), [])
+  const { enableBgMotion, lowPower } = useMotionProfile()
+  const [pageVisible, setPageVisible] = useState(
+    () => typeof document === 'undefined' || document.visibilityState === 'visible',
+  )
+  const cards = useMemo(() => buildRandomCards(lowPower ? 4 : 8), [lowPower])
+  const animateCards = enableBgMotion && pageVisible && !prefersReduced
+
+  useEffect(() => {
+    const onVis = () => setPageVisible(document.visibilityState === 'visible')
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
 
   return (
     <div
@@ -241,8 +255,8 @@ export const AnimatedBackground = memo(function AnimatedBackground() {
         <BgCard
           key={card.id}
           card={card}
-          prefersReduced={prefersReduced}
-          hideOnMobile={card.id >= 4}
+          prefersReduced={!animateCards}
+          hideOnMobile={card.id >= 3}
         />
       ))}
 

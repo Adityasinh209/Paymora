@@ -8,6 +8,7 @@ import { CVVInput } from './CVVInput'
 import { SmallBrandBadge } from './CardBrandLogo'
 import { UPI_LOGOS, WALLET_LOGOS } from './PaymentLogos'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useMotionProfile, GPU_LAYER } from '../hooks/useMotionProfile'
 import { useCardBrand } from '../hooks/useCardBrand'
 import { useCardValidation } from '../hooks/useCardValidation'
 import { useCardFunding } from '../hooks/useCardFunding'
@@ -152,15 +153,16 @@ function AppLaunchOverlay({ appId, intro }: { appId: string; intro: boolean }) {
   const app = UPI_APPS.find(a => a.id === appId)
   const Logo = UPI_LOGOS[appId]
   const accent = APP_ACCENTS[appId] ?? '#6366F1'
+  const motionProfile = useMotionProfile()
 
   return (
     <motion.div
-      className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30"
-      style={{ paddingBottom: 30 }}
+      className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30 gpu-layer"
+      style={{ paddingBottom: 30, ...GPU_LAYER }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.25 }}
+      exit={{ opacity: 0, transition: { duration: motionProfile.fade.duration } }}
+      transition={motionProfile.fade}
     >
       <motion.div
         className="absolute inset-0"
@@ -252,20 +254,29 @@ function AppLaunchOverlay({ appId, intro }: { appId: string; intro: boolean }) {
             height: 72,
             border: `1.5px solid ${accent}40`,
             boxShadow: `0 0 0 6px ${accent}12`,
+            ...GPU_LAYER,
           }}
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: intro ? 0.45 : 0, duration: 0.35 }}
+          transition={{ delay: intro ? 0.35 : 0, ...motionProfile.fade }}
         />
 
         {/* Logo pop on mount, then holds centre-stage */}
         <motion.div
           className="relative rounded-2xl overflow-hidden flex items-center justify-center bg-white"
-          style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55` }}
-          initial={{ scale: 0.3, opacity: 0, rotate: -6 }}
-          animate={{ scale: [0.3, 1.18, 1], opacity: 1, rotate: 0 }}
-          exit={{ scale: 0.7, opacity: 0, transition: { duration: 0.2 } }}
-          transition={{ duration: 0.55, times: [0, 0.6, 1], ease: [0.34, 1.56, 0.64, 1] }}
+          style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55`, ...GPU_LAYER }}
+          initial={{ scale: 0.4, opacity: 0 }}
+          animate={
+            motionProfile.lowPower
+              ? { scale: 1, opacity: 1 }
+              : { scale: [0.4, 1.12, 1], opacity: 1 }
+          }
+          exit={{ scale: 0.85, opacity: 0, transition: { duration: 0.16 } }}
+          transition={
+            motionProfile.lowPower
+              ? motionProfile.springSnappy
+              : { duration: 0.48, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }
+          }
         >
           {Logo ? <Logo size={56} /> : null}
 
@@ -373,6 +384,7 @@ function UpiIllustration() {
 function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
   // Default fan shows Paytm / PhonePe / Amazon. Selecting MobiKwik, Freecharge,
   // or JioMoney promotes that wallet into the centre so it gets the same lift.
+  const motionProfile = useMotionProfile()
   const DEFAULT_STACK = ['phonepe', 'paytm', 'amazon'] as const
   const stack: string[] = (() => {
     if (!selectedId || (DEFAULT_STACK as readonly string[]).includes(selectedId)) {
@@ -397,13 +409,19 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
       }}
       aria-label="Wallet payment illustration"
     >
-      <motion.div
+      {/* Accent glow — CSS transition (no Framer background interpolation) */}
+      <div
         className="absolute"
-        style={{ top: '20%', right: '-15%', width: '65%', height: '80%', borderRadius: '50%' }}
-        animate={{
+        style={{
+          top: '20%',
+          right: '-15%',
+          width: '65%',
+          height: '80%',
+          borderRadius: '50%',
           background: `radial-gradient(circle, ${accent}33 0%, transparent 70%)`,
+          transition: motionProfile.reduced ? 'none' : 'background 0.4s ease',
+          ...GPU_LAYER,
         }}
-        transition={{ duration: 0.45 }}
       />
       <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
@@ -424,8 +442,8 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
               return (
                 <motion.div
                   key={id}
-                  className="absolute overflow-hidden flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5"
-                  initial={{ opacity: 0, y: 28, scale: 0.88, rotate: (i - 1) * 6 }}
+                  className="absolute overflow-hidden flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 gpu-layer"
+                  initial={{ opacity: 0, y: 20, scale: 0.92 }}
                   animate={{
                     opacity: 1,
                     y: active ? -18 : (i - 1) * 10,
@@ -433,8 +451,8 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
                     rotate: active ? 0 : (i - 1) * 4,
                     zIndex: active ? 10 : i + 1,
                   }}
-                  exit={{ opacity: 0, y: 24, scale: 0.85, transition: { duration: 0.2 } }}
-                  transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                  exit={{ opacity: 0, y: 16, scale: 0.9, transition: { duration: 0.16 } }}
+                  transition={motionProfile.spring}
                   style={{
                     width: '62%',
                     aspectRatio: '3 / 1.7',
@@ -447,13 +465,14 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
                     marginLeft: '-31%',
                     marginTop: '-28px',
                     border: '1px solid rgba(255,255,255,0.15)',
+                    ...GPU_LAYER,
                   }}
                 >
                   <motion.div
                     className="overflow-hidden flex-shrink-0"
-                    style={{ width: 22, height: 22, border: '1px solid rgba(255,255,255,0.25)' }}
-                    animate={active ? { scale: [1, 1.18, 1] } : { scale: 1 }}
-                    transition={active ? { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] } : { duration: 0.2 }}
+                    style={{ width: 22, height: 22, border: '1px solid rgba(255,255,255,0.25)', ...GPU_LAYER }}
+                    animate={active ? { scale: motionProfile.lowPower ? 1.08 : [1, 1.14, 1] } : { scale: 1 }}
+                    transition={active ? motionProfile.springSnappy : motionProfile.fade}
                   >
                     {Logo ? <Logo size={22} /> : null}
                   </motion.div>
@@ -706,6 +725,7 @@ export function CheckoutForm() {
 
   const isNarrow = useMediaQuery('(max-width: 639px)')
   const isCompact = useMediaQuery('(max-width: 1023px)')
+  const motionProfile = useMotionProfile()
 
   return (
     <div className="w-full max-w-[960px] mx-auto min-w-0">
@@ -719,13 +739,14 @@ export function CheckoutForm() {
       >
         {/* ── Left Panel (Card / UPI / Wallet illustration) ─── */}
         <motion.div
-          layout
-          transition={{ type: 'spring', stiffness: 180, damping: 24, mass: 0.9 }}
+          layout={motionProfile.enableLayout}
+          transition={motionProfile.spring}
           className={
             isCentered
-              ? 'w-full max-w-[min(420px,100%)]'
-              : 'w-full max-w-[420px] mx-auto lg:mx-0 lg:w-[min(420px,42%)] lg:max-w-[420px] lg:flex-shrink-0 lg:sticky lg:top-6'
+              ? 'w-full max-w-[min(420px,100%)] gpu-layer'
+              : 'w-full max-w-[420px] mx-auto lg:mx-0 lg:w-[min(420px,42%)] lg:max-w-[420px] lg:flex-shrink-0 lg:sticky lg:top-6 gpu-layer'
           }
+          style={GPU_LAYER}
         >
           <div className="relative">
             {/* Same tricolor → green glow for Card, UPI, and Wallet */}
@@ -740,10 +761,11 @@ export function CheckoutForm() {
                 {activeMethod === 'card' ? (
                   <motion.div
                     key="left-card"
-                    initial={{ opacity: 0, scale: 0.97 }}
+                    initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.97 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={motionProfile.slide}
+                    className="gpu-layer"
                   >
                     <CardPreview
                       cardNumber={fields.cardNumber.value}
@@ -760,11 +782,11 @@ export function CheckoutForm() {
                 ) : activeMethod === 'upi' ? (
                   <motion.div
                     key="left-upi"
-                    initial={{ opacity: 0, x: 30, scale: 0.97 }}
+                    initial={{ opacity: 0, x: 20, scale: 0.98 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -30, scale: 0.97 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    className="relative w-full max-w-[420px] mx-auto overflow-visible"
+                    exit={{ opacity: 0, x: -16, scale: 0.98 }}
+                    transition={motionProfile.slide}
+                    className="relative w-full max-w-[420px] mx-auto overflow-visible gpu-layer"
                     style={{
                       paddingBottom: selectedUpiApp ? 28 : 0,
                       // Keep peel-out QR inside the viewport on narrow screens
@@ -773,14 +795,14 @@ export function CheckoutForm() {
                   >
                     {/* Main UPI card — slides left to clear the top-right for the QR */}
                     <motion.div
-                      className="relative z-10"
+                      className="relative z-10 gpu-layer"
                       initial={false}
                       animate={{
                         x: qrRevealed ? (isNarrow ? '-6%' : isCompact ? '-8%' : -40) : 0,
                         scale: qrRevealed ? (isNarrow ? 0.94 : 0.9) : 1,
                       }}
-                      transition={{ type: 'spring', stiffness: 280, damping: 26, mass: 0.8 }}
-                      style={{ transformOrigin: 'left center', willChange: 'transform' }}
+                      transition={motionProfile.spring}
+                      style={{ transformOrigin: 'left center', ...GPU_LAYER }}
                     >
                       <UpiIllustration />
                     </motion.div>
@@ -791,20 +813,20 @@ export function CheckoutForm() {
                       {selectedUpiApp && qrRevealed && (
                         <motion.div
                           key="qr-card"
-                          className="absolute z-[15] pointer-events-none"
+                          className="absolute z-[15] pointer-events-none gpu-layer"
                           style={{
                             top: isNarrow ? '-6%' : '-10%',
                             right: isNarrow ? '0%' : '2%',
                             width: isNarrow ? '36%' : '40%',
                             maxWidth: isNarrow ? 128 : 168,
+                            ...GPU_LAYER,
                           }}
                           initial={{
                             opacity: 0,
-                            scale: 0.45,
+                            scale: 0.55,
                             x: isNarrow ? -28 : -56,
                             y: isNarrow ? 28 : 42,
-                            rotate: 12,
-                            filter: 'blur(14px)',
+                            rotate: 10,
                           }}
                           animate={{
                             opacity: 1,
@@ -812,18 +834,16 @@ export function CheckoutForm() {
                             x: 0,
                             y: 0,
                             rotate: isNarrow ? 2 : 4,
-                            filter: 'blur(0px)',
                           }}
                           exit={{
                             opacity: 0,
-                            scale: 0.45,
+                            scale: 0.55,
                             x: isNarrow ? -24 : -48,
                             y: isNarrow ? 24 : 36,
-                            rotate: 12,
-                            filter: 'blur(12px)',
-                            transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] },
+                            rotate: 10,
+                            transition: motionProfile.fade,
                           }}
-                          transition={{ type: 'spring', stiffness: 280, damping: 24, mass: 0.7 }}
+                          transition={motionProfile.spring}
                         >
                           <div className="pointer-events-auto">
                             <UpiAppQrCard appId={selectedUpiApp} />
@@ -846,11 +866,11 @@ export function CheckoutForm() {
                             background: '#fff',
                             boxShadow: '0 8px 20px rgba(15,23,42,0.18), 0 0 0 1px rgba(226,232,240,0.9)',
                           }}
-                          initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                          initial={{ opacity: 0, y: 8, scale: 0.94 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 8, scale: 0.9 }}
-                          transition={{ type: 'spring', stiffness: 340, damping: 26 }}
-                          whileTap={{ scale: 0.94 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.94 }}
+                          transition={motionProfile.springSnappy}
+                          whileTap={{ scale: 0.96 }}
                         >
                           <span className="w-5 h-5 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0">
                             <UpiQrSvg size={13} />
@@ -863,10 +883,11 @@ export function CheckoutForm() {
                 ) : (
                   <motion.div
                     key="left-wallet"
-                    initial={{ opacity: 0, x: 30, scale: 0.97 }}
+                    initial={{ opacity: 0, x: 20, scale: 0.98 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -30, scale: 0.97 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    exit={{ opacity: 0, x: -16, scale: 0.98 }}
+                    transition={motionProfile.slide}
+                    className="gpu-layer"
                   >
                     <WalletIllustration selectedId={selectedWallet} />
                   </motion.div>
@@ -883,19 +904,17 @@ export function CheckoutForm() {
         {phase === 'form' && (
           <motion.div
             key="form"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0, x: 0, scale: 1, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
             exit={{
               opacity: 0,
-              x: 56,
-              y: 8,
-              scale: 0.96,
-              filter: 'blur(8px)',
-              transition: { duration: 0.42, ease: [0.4, 0, 0.2, 1] },
+              x: motionProfile.lowPower ? 24 : 40,
+              scale: 0.97,
+              transition: { duration: motionProfile.lowPower ? 0.22 : 0.32, ease: [0.4, 0, 0.2, 1] },
             }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="w-full lg:flex-1 min-w-0"
-            style={{ willChange: 'opacity, transform, filter' }}
+            transition={motionProfile.slide}
+            className="w-full lg:flex-1 min-w-0 gpu-layer"
+            style={GPU_LAYER}
           >
             <form
               onSubmit={handleSubmit}
@@ -949,7 +968,7 @@ export function CheckoutForm() {
                       custom={tabDirectionRef.current}
                       variants={{ enter: (d: number) => ({ x: d * 40, opacity: 0 }), center: { x: 0, opacity: 1 }, exit: (d: number) => ({ x: d * -40, opacity: 0 }) }}
                       initial="enter" animate="center" exit="exit"
-                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      transition={motionProfile.slide}
                       className="flex flex-col gap-4"
                     >
                       {/* Card Number */}
@@ -991,7 +1010,7 @@ export function CheckoutForm() {
                       custom={tabDirectionRef.current}
                       variants={{ enter: (d: number) => ({ x: d * 40, opacity: 0 }), center: { x: 0, opacity: 1 }, exit: (d: number) => ({ x: d * -40, opacity: 0 }) }}
                       initial="enter" animate="center" exit="exit"
-                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      transition={motionProfile.slide}
                       className="flex flex-col gap-4"
                     >
                       {/* UPI App quick-select — grid by default; centre-stage while an app is selected */}
@@ -999,7 +1018,7 @@ export function CheckoutForm() {
                         <motion.p
                           className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-2"
                           animate={{ opacity: selectedUpiApp ? 0 : 1 }}
-                          transition={{ duration: 0.18 }}
+                          transition={motionProfile.fade}
                         >
                           Pay via app
                         </motion.p>
@@ -1014,16 +1033,16 @@ export function CheckoutForm() {
                             const stripSize = isNarrow ? 28 : 30
                             return (
                               <motion.button
-                                layout
+                                layout={motionProfile.enableLayout}
                                 key={app.id}
                                 type="button"
                                 onClick={() => selectUpiApp(app.id)}
-                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                transition={motionProfile.springSnappy}
                                 className={
                                   staged
-                                    ? 'flex items-center justify-center rounded-full border border-slate-100 overflow-hidden flex-shrink-0 bg-white'
+                                    ? 'flex items-center justify-center rounded-full border border-slate-100 overflow-hidden flex-shrink-0 bg-white gpu-layer'
                                     : [
-                                        'flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] min-w-0 rounded-none border transition-colors duration-150 text-left',
+                                        'flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-2.5 min-h-[44px] min-w-0 rounded-none border transition-colors duration-150 text-left gpu-layer',
                                         selected
                                           ? 'border-indigo-300 bg-indigo-50'
                                           : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50',
@@ -1034,15 +1053,15 @@ export function CheckoutForm() {
                                     ? selected
                                       ? // Selected app leaves the strip — it lives centre-stage in the overlay.
                                         // Width must stay non-zero or Framer's layout scale-correction breaks.
-                                        { width: 10, height: stripSize, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const }
-                                      : { width: stripSize, height: stripSize, opacity: 1 }
-                                    : { opacity: 1 }
+                                        { width: 10, height: stripSize, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const, ...GPU_LAYER }
+                                      : { width: stripSize, height: stripSize, opacity: 1, ...GPU_LAYER }
+                                    : { opacity: 1, ...GPU_LAYER }
                                 }
                                 aria-label={app.name}
                                 aria-pressed={selected}
                               >
                                 <motion.div
-                                  layout
+                                  layout={motionProfile.enableLayout}
                                   className={staged ? 'w-full h-full flex items-center justify-center' : 'w-6 h-6 sm:w-7 sm:h-7 rounded-none overflow-hidden flex-shrink-0 border border-slate-100'}
                                 >
                                   {Logo ? <Logo size={staged ? stripSize : (isNarrow ? 24 : 28)} /> : null}
@@ -1120,7 +1139,7 @@ export function CheckoutForm() {
                       custom={tabDirectionRef.current}
                       variants={{ enter: (d: number) => ({ x: d * 40, opacity: 0 }), center: { x: 0, opacity: 1 }, exit: (d: number) => ({ x: d * -40, opacity: 0 }) }}
                       initial="enter" animate="center" exit="exit"
-                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      transition={motionProfile.slide}
                       className="flex flex-col gap-4"
                     >
                       {/* Wallet grid */}
@@ -1134,30 +1153,31 @@ export function CheckoutForm() {
                               <motion.button
                                 key={w.id}
                                 type="button"
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 8 }}
                                 animate={{
                                   opacity: 1,
                                   y: selected ? -2 : 0,
                                   borderColor: selected ? 'transparent' : 'rgb(226 232 240)',
                                   backgroundColor: selected ? `${w.color}12` : '#ffffff',
-                                  boxShadow: selected
-                                    ? `0 8px 18px ${w.color}28`
-                                    : '0 0 0 transparent',
                                 }}
                                 transition={{
-                                  opacity: { delay: i * 0.04, duration: 0.25 },
-                                  y: { type: 'spring', stiffness: 320, damping: 22 },
-                                  borderColor: { duration: 0.2 },
-                                  backgroundColor: { duration: 0.2 },
-                                  boxShadow: { duration: 0.25 },
+                                  opacity: { delay: motionProfile.lowPower ? 0 : i * 0.03, ...motionProfile.fade },
+                                  y: motionProfile.springSnappy,
+                                  borderColor: motionProfile.fade,
+                                  backgroundColor: motionProfile.fade,
                                 }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelectedWallet(prev => (prev === w.id ? null : w.id))}
-                                className="relative flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 min-h-[72px] sm:min-h-[88px] min-w-0 rounded-none border outline-none overflow-visible"
-                                style={{ borderWidth: 1.5 }}
+                                className="relative flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 min-h-[72px] sm:min-h-[88px] min-w-0 rounded-none border outline-none overflow-visible gpu-layer"
+                                style={{
+                                  borderWidth: 1.5,
+                                  boxShadow: selected ? `0 8px 18px ${w.color}28` : 'none',
+                                  transition: motionProfile.reduced ? 'none' : 'box-shadow 0.2s ease',
+                                  ...GPU_LAYER,
+                                }}
                                 aria-pressed={selected}
                               >
-                                {/* Brand-colored orbit that travels around the selected box */}
+                                {/* Brand-colored orbit — CSS-driven on the stroke for buttery 60fps */}
                                 <AnimatePresence>
                                   {selected && (
                                     <motion.svg
@@ -1168,10 +1188,9 @@ export function CheckoutForm() {
                                       initial={{ opacity: 0 }}
                                       animate={{ opacity: 1 }}
                                       exit={{ opacity: 0 }}
-                                      transition={{ duration: 0.2 }}
+                                      transition={motionProfile.fade}
                                       aria-hidden="true"
                                     >
-                                      {/* Soft full-perimeter tint */}
                                       <rect
                                         x="1.5"
                                         y="1.5"
@@ -1183,8 +1202,8 @@ export function CheckoutForm() {
                                         strokeOpacity="0.28"
                                         vectorEffect="non-scaling-stroke"
                                       />
-                                      {/* Traveling highlight */}
-                                      <motion.rect
+                                      <rect
+                                        className={motionProfile.reduced ? undefined : 'wallet-orbit-dash'}
                                         x="1.5"
                                         y="1.5"
                                         width="97"
@@ -1196,10 +1215,6 @@ export function CheckoutForm() {
                                         vectorEffect="non-scaling-stroke"
                                         pathLength={100}
                                         strokeDasharray="22 78"
-                                        initial={{ strokeDashoffset: 0 }}
-                                        animate={{ strokeDashoffset: -100 }}
-                                        transition={{ duration: 1.55, repeat: Infinity, ease: 'linear' }}
-                                        style={{ filter: `drop-shadow(0 0 3px ${w.color})` }}
                                       />
                                     </motion.svg>
                                   )}
@@ -1207,12 +1222,8 @@ export function CheckoutForm() {
 
                                 <motion.div
                                   className="relative z-[1] w-8 h-8 sm:w-9 sm:h-9 rounded-none overflow-hidden border border-slate-100 shadow-sm"
-                                  animate={selected ? { scale: [1, 1.16, 1] } : { scale: 1 }}
-                                  transition={
-                                    selected
-                                      ? { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }
-                                      : { duration: 0.2 }
-                                  }
+                                  animate={selected ? { scale: motionProfile.lowPower ? 1.08 : [1, 1.12, 1] } : { scale: 1 }}
+                                  transition={selected ? motionProfile.springSnappy : motionProfile.fade}
                                 >
                                   {Logo ? <Logo size={isNarrow ? 32 : 36} /> : null}
                                 </motion.div>
@@ -1290,11 +1301,11 @@ export function CheckoutForm() {
               {/* Submit button */}
               <motion.button
                 type="submit"
-                whileHover={{ scale: canSubmit ? 1.01 : 1 }}
+                whileHover={canSubmit && !motionProfile.lowPower ? { scale: 1.01 } : undefined}
                 whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                transition={motionProfile.springSnappy}
                 className={[
-                  'relative w-full flex items-center justify-center gap-2.5',
+                  'relative w-full flex items-center justify-center gap-2.5 gpu-layer',
                   'min-h-[48px] py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl font-semibold text-[14px] sm:text-[15px] text-white',
                   'transition-opacity duration-200',
                   !canSubmit ? 'opacity-60' : '',
@@ -1494,18 +1505,19 @@ function SuccessModal({ onGoHome }: { onGoHome: () => void }) {
       />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.85, y: 24 }}
+        initial={{ opacity: 0, scale: 0.92, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 12 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        className="relative glass-strong rounded-2xl p-8 sm:p-12 flex flex-col items-center gap-5 text-center w-full max-w-[400px]"
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.75 }}
+        className="relative glass-strong rounded-2xl p-8 sm:p-12 flex flex-col items-center gap-5 text-center w-full max-w-[400px] gpu-layer"
+        style={GPU_LAYER}
       >
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 20 }}
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
+          className="w-16 h-16 rounded-full flex items-center justify-center gpu-layer"
+          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', ...GPU_LAYER }}
         >
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
             <path
