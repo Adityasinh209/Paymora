@@ -256,7 +256,13 @@ body {
 /* Lighter glow work on phones — huge CSS blurs tank mobile GPUs */
 @media (max-width: 639px) {
   .tricolor-spin {
-    animation-duration: 7s;
+    animation-duration: 8s;
+    /* Drop will-change on mobile — saves compositor memory */
+    will-change: auto;
+  }
+
+  .wallet-orbit-dash {
+    animation: none !important;
   }
 }
 

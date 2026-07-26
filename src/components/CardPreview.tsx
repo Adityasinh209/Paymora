@@ -2,6 +2,7 @@ import { memo, useMemo, useEffect, type CSSProperties } from 'react'
 import { motion, AnimatePresence, useTransform, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion'
 import { CardBrandLogo } from './CardBrandLogo'
 import { useCardTilt } from '../hooks/useCardTilt'
+import { useMotionProfile } from '../hooks/useMotionProfile'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { getCardDisplayGroups } from '../utils/cardFormatters'
 import type { CardBrand } from '../utils/cardBrands'
@@ -462,8 +463,10 @@ export const CardPreview = memo(function CardPreview({
   const bankStyle = getBankStyle(bank)
   const showBank = Boolean(bank)
   const prefersReduced = useReducedMotion()
+  const motionProfile = useMotionProfile()
+  const tiltOff = prefersReduced || motionProfile.lowPower
   const { containerRef, rotateX, rotateY, shineX, shineY } = useCardTilt({
-    disabled: prefersReduced,
+    disabled: tiltOff,
   })
 
   const flipTarget = useMotionValue(0)
@@ -474,8 +477,9 @@ export const CardPreview = memo(function CardPreview({
   })
 
   useEffect(() => {
+    if (tiltOff) return
     flipTarget.set(isFlipped ? 180 : 0)
-  }, [isFlipped, flipTarget])
+  }, [isFlipped, flipTarget, tiltOff])
 
   const combinedRotateY = useTransform(
     [rotateY, flipSpring] as const,
@@ -526,12 +530,15 @@ export const CardPreview = memo(function CardPreview({
         className="relative w-full"
         style={{
           transformStyle: 'preserve-3d',
-          rotateX: prefersReduced ? 0 : rotateX,
-          rotateY: prefersReduced ? (isFlipped ? 180 : 0) : combinedRotateY,
-          willChange: 'transform',
+          ...(tiltOff
+            ? {}
+            : {
+                rotateX,
+                rotateY: combinedRotateY,
+              }),
         }}
-        animate={prefersReduced ? { rotateY: isFlipped ? 180 : 0 } : {}}
-        transition={{ duration: 0 }}
+        animate={tiltOff ? { rotateY: isFlipped ? 180 : 0 } : undefined}
+        transition={tiltOff ? motionProfile.spring : { duration: 0 }}
       >
         {/* ── Front Face ─────────────────────────────────────── */}
         <div
@@ -562,7 +569,7 @@ export const CardPreview = memo(function CardPreview({
 
           {/* Plastic grain / micro texture — z-[2] keeps overlays above brand skin */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-[0.07] z-[2]"
+            className="absolute inset-0 pointer-events-none opacity-[0.07] z-[2] hidden sm:block"
             style={{
               backgroundImage:
                 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
@@ -739,7 +746,7 @@ export const CardPreview = memo(function CardPreview({
         >
           {/* Grain */}
           <div
-            className="absolute inset-0 opacity-[0.07] pointer-events-none"
+            className="absolute inset-0 opacity-[0.07] pointer-events-none hidden sm:block"
             style={{
               backgroundImage:
                 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',

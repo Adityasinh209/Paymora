@@ -8,7 +8,7 @@ import { CVVInput } from './CVVInput'
 import { SmallBrandBadge } from './CardBrandLogo'
 import { UPI_LOGOS, WALLET_LOGOS } from './PaymentLogos'
 import { useMediaQuery } from '../hooks/useMediaQuery'
-import { useMotionProfile, GPU_LAYER } from '../hooks/useMotionProfile'
+import { useMotionProfile } from '../hooks/useMotionProfile'
 import { useCardBrand } from '../hooks/useCardBrand'
 import { useCardValidation } from '../hooks/useCardValidation'
 import { useCardFunding } from '../hooks/useCardFunding'
@@ -154,22 +154,24 @@ function AppLaunchOverlay({ appId, intro }: { appId: string; intro: boolean }) {
   const Logo = UPI_LOGOS[appId]
   const accent = APP_ACCENTS[appId] ?? '#6366F1'
   const motionProfile = useMotionProfile()
+  const richFx = !motionProfile.lowPower
 
   return (
     <motion.div
       className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30 gpu-layer"
-      style={{ paddingBottom: 30, ...GPU_LAYER }}
+      style={{ paddingBottom: 30, ...motionProfile.gpuLayer }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: motionProfile.fade.duration } }}
       transition={motionProfile.fade}
     >
-      <motion.div
+      {/* Soft wash — opacity only; skip animating on mobile */}
+      <div
         className="absolute inset-0"
-        style={{ background: `radial-gradient(circle at 50% 38%, ${accent}1a 0%, transparent 65%)` }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        style={{
+          background: `radial-gradient(circle at 50% 38%, ${accent}1a 0%, transparent 65%)`,
+          opacity: 1,
+        }}
       />
 
       {/* Label — intro copy, then settled app name in the same spot */}
@@ -179,72 +181,76 @@ function AppLaunchOverlay({ appId, intro }: { appId: string; intro: boolean }) {
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
-        transition={{ delay: 0.12, duration: 0.25 }}
+        transition={{ delay: richFx ? 0.12 : 0, ...motionProfile.fade }}
       >
         {intro ? `Opening ${app?.name}…` : app?.name}
       </motion.span>
 
       {/* Logo + rings block */}
       <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
-        {/* Intro-only rings / sweeps — unmount when settled */}
-        <AnimatePresence>
-          {intro && (appId === 'phonepe' || appId === 'paytm') &&
-            [0, 1].map(i => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full border-2"
-                style={{ borderColor: accent, width: 58, height: 58, left: 11, top: 11 }}
-                initial={{ opacity: 0.55, scale: 0.6 }}
-                animate={{ opacity: 0, scale: 2.2 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1, delay: i * 0.22, ease: 'easeOut' }}
-              />
-            ))}
-        </AnimatePresence>
+        {/* Intro-only rings / sweeps — desktop only (conic + multi-ring = paint thrash) */}
+        {richFx && (
+          <>
+            <AnimatePresence>
+              {intro && (appId === 'phonepe' || appId === 'paytm') &&
+                [0, 1].map(i => (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-full border-2"
+                    style={{ borderColor: accent, width: 58, height: 58, left: 11, top: 11 }}
+                    initial={{ opacity: 0.55, scale: 0.6 }}
+                    animate={{ opacity: 0, scale: 2.2 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1, delay: i * 0.22, ease: 'easeOut' }}
+                  />
+                ))}
+            </AnimatePresence>
 
-        <AnimatePresence>
-          {intro && appId === 'gpay' && (
-            <motion.div
-              key="gpay-ring"
-              className="absolute rounded-full"
-              style={{
-                width: 76,
-                height: 76,
-                left: 2,
-                top: 2,
-                background: 'conic-gradient(from 0deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4)',
-                maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-                WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-              }}
-              initial={{ rotate: 0, opacity: 0, scale: 0.7 }}
-              animate={{ rotate: 300, opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.25 } }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            />
-          )}
-        </AnimatePresence>
+            <AnimatePresence>
+              {intro && appId === 'gpay' && (
+                <motion.div
+                  key="gpay-ring"
+                  className="absolute rounded-full"
+                  style={{
+                    width: 76,
+                    height: 76,
+                    left: 2,
+                    top: 2,
+                    background: 'conic-gradient(from 0deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4)',
+                    maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+                    WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+                  }}
+                  initial={{ rotate: 0, opacity: 0, scale: 0.7 }}
+                  animate={{ rotate: 300, opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.25 } }}
+                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                />
+              )}
+            </AnimatePresence>
 
-        <AnimatePresence>
-          {intro && appId === 'bhim' && (
-            <motion.div
-              key="bhim-ring"
-              className="absolute rounded-full"
-              style={{
-                width: 76,
-                height: 76,
-                left: 2,
-                top: 2,
-                background: 'conic-gradient(from -90deg, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%)',
-                maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-                WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
-              }}
-              initial={{ rotate: -70, opacity: 0, scale: 0.6 }}
-              animate={{ rotate: 0, opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.25 } }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            />
-          )}
-        </AnimatePresence>
+            <AnimatePresence>
+              {intro && appId === 'bhim' && (
+                <motion.div
+                  key="bhim-ring"
+                  className="absolute rounded-full"
+                  style={{
+                    width: 76,
+                    height: 76,
+                    left: 2,
+                    top: 2,
+                    background: 'conic-gradient(from -90deg, #FF9933 0%, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%, #138808 100%)',
+                    maskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+                    WebkitMaskImage: 'radial-gradient(circle, transparent 58%, black 60%)',
+                  }}
+                  initial={{ rotate: -70, opacity: 0, scale: 0.6 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.25 } }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                />
+              )}
+            </AnimatePresence>
+          </>
+        )}
 
         {/* Soft accent ring — always on while centre-staged */}
         <motion.div
@@ -253,63 +259,79 @@ function AppLaunchOverlay({ appId, intro }: { appId: string; intro: boolean }) {
             width: 72,
             height: 72,
             border: `1.5px solid ${accent}40`,
-            boxShadow: `0 0 0 6px ${accent}12`,
-            ...GPU_LAYER,
+            boxShadow: richFx ? `0 0 0 6px ${accent}12` : 'none',
+            ...motionProfile.gpuLayer,
           }}
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: intro ? 0.35 : 0, ...motionProfile.fade }}
+          transition={{ delay: intro && richFx ? 0.35 : 0, ...motionProfile.fade }}
         />
 
         {/* Logo pop on mount, then holds centre-stage */}
         <motion.div
           className="relative rounded-2xl overflow-hidden flex items-center justify-center bg-white"
-          style={{ width: 56, height: 56, boxShadow: `0 10px 28px ${accent}55`, ...GPU_LAYER }}
-          initial={{ scale: 0.4, opacity: 0 }}
+          style={{
+            width: 56,
+            height: 56,
+            boxShadow: `0 10px 28px ${accent}55`,
+            ...motionProfile.gpuLayer,
+          }}
+          initial={{ scale: 0.55, opacity: 0 }}
           animate={
-            motionProfile.lowPower
-              ? { scale: 1, opacity: 1 }
-              : { scale: [0.4, 1.12, 1], opacity: 1 }
+            richFx
+              ? { scale: [0.4, 1.12, 1], opacity: 1 }
+              : { scale: 1, opacity: 1 }
           }
-          exit={{ scale: 0.85, opacity: 0, transition: { duration: 0.16 } }}
+          exit={{ scale: 0.9, opacity: 0, transition: { duration: 0.14 } }}
           transition={
-            motionProfile.lowPower
-              ? motionProfile.springSnappy
-              : { duration: 0.48, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }
+            richFx
+              ? { duration: 0.48, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }
+              : motionProfile.springSnappy
           }
         >
           {Logo ? <Logo size={56} /> : null}
 
-          <AnimatePresence>
-            {intro && appId === 'cred' && (
-              <motion.div
-                key="cred-shimmer"
-                className="absolute inset-0"
-                style={{ background: `linear-gradient(115deg, transparent 30%, ${accent}88 50%, transparent 70%)` }}
-                initial={{ x: '-130%' }}
-                animate={{ x: '130%' }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.7, delay: 0.18, ease: 'easeInOut' }}
-              />
-            )}
-          </AnimatePresence>
+          {richFx && (
+            <AnimatePresence>
+              {intro && appId === 'cred' && (
+                <motion.div
+                  key="cred-shimmer"
+                  className="absolute inset-0"
+                  style={{ background: `linear-gradient(115deg, transparent 30%, ${accent}88 50%, transparent 70%)` }}
+                  initial={{ x: '-130%' }}
+                  animate={{ x: '130%' }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7, delay: 0.18, ease: 'easeInOut' }}
+                />
+              )}
+            </AnimatePresence>
+          )}
         </motion.div>
       </div>
 
-      {/* Amazon smile — draws in on intro, stays drawn when settled */}
+      {/* Amazon smile — static on mobile, drawn on desktop */}
       {appId === 'amazon' && (
         <svg width="40" height="16" viewBox="0 0 46 20" className="-mt-1" style={{ overflow: 'visible' }} aria-hidden="true">
-          <motion.path
-            d="M3 4 C 14 18, 32 18, 43 4"
-            fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.26, ease: 'easeOut' }}
-          />
-          <motion.path
-            d="M38 2 L44 4 L40 9" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68, duration: 0.2 }}
-          />
+          {richFx ? (
+            <>
+              <motion.path
+                d="M3 4 C 14 18, 32 18, 43 4"
+                fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.26, ease: 'easeOut' }}
+              />
+              <motion.path
+                d="M38 2 L44 4 L40 9" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68, duration: 0.2 }}
+              />
+            </>
+          ) : (
+            <>
+              <path d="M3 4 C 14 18, 32 18, 43 4" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round" />
+              <path d="M38 2 L44 4 L40 9" fill="none" stroke={accent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </>
+          )}
         </svg>
       )}
     </motion.div>
@@ -331,7 +353,7 @@ function UpiIllustration() {
     >
       <div className="absolute" style={{ top: '-30%', right: '-5%', width: '70%', height: '130%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)' }}/>
       <div className="absolute" style={{ bottom: '-20%', left: '-10%', width: '50%', height: '80%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)' }}/>
-      <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
+      <div className="absolute inset-0 opacity-[0.06] hidden sm:block" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
       <div className="absolute inset-0 flex flex-col justify-between p-3.5 sm:p-5 md:p-6">
         <div className="flex items-start justify-between gap-2">
@@ -420,10 +442,10 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
           borderRadius: '50%',
           background: `radial-gradient(circle, ${accent}33 0%, transparent 70%)`,
           transition: motionProfile.reduced ? 'none' : 'background 0.4s ease',
-          ...GPU_LAYER,
+          ...motionProfile.gpuLayer,
         }}
       />
-      <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
+      <div className="absolute inset-0 opacity-[0.06] hidden sm:block" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
       <div className="absolute inset-0 flex flex-col justify-between p-3.5 sm:p-5 md:p-6">
         <div className="flex items-start justify-between gap-2">
@@ -465,12 +487,12 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
                     marginLeft: '-31%',
                     marginTop: '-28px',
                     border: '1px solid rgba(255,255,255,0.15)',
-                    ...GPU_LAYER,
+                    ...motionProfile.gpuLayer,
                   }}
                 >
                   <motion.div
                     className="overflow-hidden flex-shrink-0"
-                    style={{ width: 22, height: 22, border: '1px solid rgba(255,255,255,0.25)', ...GPU_LAYER }}
+                    style={{ width: 22, height: 22, border: '1px solid rgba(255,255,255,0.25)', ...motionProfile.gpuLayer }}
                     animate={active ? { scale: motionProfile.lowPower ? 1.08 : [1, 1.14, 1] } : { scale: 1 }}
                     transition={active ? motionProfile.springSnappy : motionProfile.fade}
                   >
@@ -746,7 +768,7 @@ export function CheckoutForm() {
               ? 'w-full max-w-[min(420px,100%)] gpu-layer'
               : 'w-full max-w-[420px] mx-auto lg:mx-0 lg:w-[min(420px,42%)] lg:max-w-[420px] lg:flex-shrink-0 lg:sticky lg:top-6 gpu-layer'
           }
-          style={GPU_LAYER}
+          style={motionProfile.gpuLayer}
         >
           <div className="relative">
             {/* Same tricolor → green glow for Card, UPI, and Wallet */}
@@ -802,7 +824,7 @@ export function CheckoutForm() {
                         scale: qrRevealed ? (isNarrow ? 0.94 : 0.9) : 1,
                       }}
                       transition={motionProfile.spring}
-                      style={{ transformOrigin: 'left center', ...GPU_LAYER }}
+                      style={{ transformOrigin: 'left center', ...motionProfile.gpuLayer }}
                     >
                       <UpiIllustration />
                     </motion.div>
@@ -819,7 +841,7 @@ export function CheckoutForm() {
                             right: isNarrow ? '0%' : '2%',
                             width: isNarrow ? '36%' : '40%',
                             maxWidth: isNarrow ? 128 : 168,
-                            ...GPU_LAYER,
+                            ...motionProfile.gpuLayer,
                           }}
                           initial={{
                             opacity: 0,
@@ -898,9 +920,8 @@ export function CheckoutForm() {
         </motion.div>
 
         {/* ── Form Panel ─────────────────────────────────────
-            popLayout pulls the exiting form out of flow so the
-            card can center without the form jumping underneath. */}
-      <AnimatePresence mode="popLayout">
+            Desktop: popLayout; mobile: sync (avoids layout thrash). */}
+      <AnimatePresence mode={motionProfile.lowPower ? 'sync' : 'popLayout'}>
         {phase === 'form' && (
           <motion.div
             key="form"
@@ -914,7 +935,7 @@ export function CheckoutForm() {
             }}
             transition={motionProfile.slide}
             className="w-full lg:flex-1 min-w-0 gpu-layer"
-            style={GPU_LAYER}
+            style={motionProfile.gpuLayer}
           >
             <form
               onSubmit={handleSubmit}
@@ -1053,9 +1074,9 @@ export function CheckoutForm() {
                                     ? selected
                                       ? // Selected app leaves the strip — it lives centre-stage in the overlay.
                                         // Width must stay non-zero or Framer's layout scale-correction breaks.
-                                        { width: 10, height: stripSize, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const, ...GPU_LAYER }
-                                      : { width: stripSize, height: stripSize, opacity: 1, ...GPU_LAYER }
-                                    : { opacity: 1, ...GPU_LAYER }
+                                        { width: 10, height: stripSize, opacity: 0, borderWidth: 0, padding: 0, pointerEvents: 'none' as const, ...motionProfile.gpuLayer }
+                                      : { width: stripSize, height: stripSize, opacity: 1, ...motionProfile.gpuLayer }
+                                    : { opacity: 1, ...motionProfile.gpuLayer }
                                 }
                                 aria-label={app.name}
                                 aria-pressed={selected}
@@ -1174,11 +1195,11 @@ export function CheckoutForm() {
                                   transition: motionProfile.reduced
                                     ? 'none'
                                     : `border-color ${motionProfile.fade.duration}s ease, background-color ${motionProfile.fade.duration}s ease, box-shadow 0.2s ease`,
-                                  ...GPU_LAYER,
+                                  ...motionProfile.gpuLayer,
                                 }}
                                 aria-pressed={selected}
                               >
-                                {/* Brand-colored orbit — CSS-driven on the stroke for buttery 60fps */}
+                                {/* Brand-colored orbit — CSS on desktop; static border on mobile */}
                                 <AnimatePresence>
                                   {selected && (
                                     <motion.svg
@@ -1204,7 +1225,11 @@ export function CheckoutForm() {
                                         vectorEffect="non-scaling-stroke"
                                       />
                                       <rect
-                                        className={motionProfile.reduced ? undefined : 'wallet-orbit-dash'}
+                                        className={
+                                          motionProfile.reduced || motionProfile.lowPower
+                                            ? undefined
+                                            : 'wallet-orbit-dash'
+                                        }
                                         x="1.5"
                                         y="1.5"
                                         width="97"
@@ -1215,7 +1240,9 @@ export function CheckoutForm() {
                                         strokeLinecap="round"
                                         vectorEffect="non-scaling-stroke"
                                         pathLength={100}
-                                        strokeDasharray="22 78"
+                                        strokeDasharray={
+                                          motionProfile.lowPower ? '100 0' : '22 78'
+                                        }
                                       />
                                     </motion.svg>
                                   )}
@@ -1365,18 +1392,18 @@ export function CheckoutForm() {
  *  Desktop: full three-layer bloom kept intact.
  */
 function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
-  const { lowPower } = useMotionProfile()
+  const { lowPower, gpuLayer, fade } = useMotionProfile()
   const conic =
     'conic-gradient(from 0deg, #FF9933 0%, #FFB347 14%, #fff 30%, #fff 50%, #138808 66%, #0B5C05 82%, #FF9933 100%)'
 
   return (
     <motion.div
       className="absolute pointer-events-none z-0"
-      style={{ inset: -22, ...GPU_LAYER }}
+      style={{ inset: -22, ...gpuLayer }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.4 } }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      exit={{ opacity: 0, transition: fade }}
+      transition={fade}
       aria-hidden="true"
     >
       {/* ── Outer diffuse bloom — desktop only (blur is expensive) */}
@@ -1392,7 +1419,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
               background: conic,
               filter: 'blur(32px)',
               opacity: 0.55,
-              ...GPU_LAYER,
+              ...gpuLayer,
             }}
           />
         </div>
@@ -1413,7 +1440,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
             background: conic,
             filter: lowPower ? 'none' : 'blur(1px)',
             opacity: 0.92,
-            ...GPU_LAYER,
+            ...gpuLayer,
           }}
         />
       </div>
@@ -1434,7 +1461,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
               background:
                 'conic-gradient(from 0deg, transparent 0%, transparent 74%, rgba(255,255,255,0.7) 84%, rgba(255,220,100,0.9) 90%, transparent 100%)',
               filter: 'blur(2px)',
-              ...GPU_LAYER,
+              ...gpuLayer,
             }}
           />
         </div>
@@ -1459,7 +1486,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
               background:
                 'radial-gradient(ellipse 70% 70% at 50% 50%, #22c55e 0%, #16a34a 28%, #15803d 55%, transparent 80%)',
               filter: 'blur(28px)',
-              ...GPU_LAYER,
+              ...gpuLayer,
             }}
             animate={finalizing ? { scale: [1, 1.06, 1] } : {}}
             transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
@@ -1476,7 +1503,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
             background:
               'conic-gradient(from 0deg, #22c55e 0%, #4ade80 25%, #86efac 50%, #4ade80 75%, #22c55e 100%)',
             filter: lowPower ? 'none' : 'blur(1px)',
-            ...GPU_LAYER,
+            ...gpuLayer,
           }}
         />
         {/* Traveling tip — desktop only */}
@@ -1491,7 +1518,7 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
               background:
                 'conic-gradient(from 0deg, transparent 0%, transparent 80%, rgba(134,239,172,0.8) 88%, rgba(255,255,255,0.95) 92%, transparent 100%)',
               filter: 'blur(2px)',
-              ...GPU_LAYER,
+              ...gpuLayer,
             }}
           />
         )}
@@ -1502,13 +1529,15 @@ function TricolorGlow({ finalizing = false }: { finalizing?: boolean }) {
 
 /** Centered popup shown after the tricolor glow completes */
 function SuccessModal({ onGoHome }: { onGoHome: () => void }) {
+  const motionProfile = useMotionProfile()
+
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={motionProfile.fade}
       role="dialog"
       aria-modal="true"
       aria-label="Payment successful"
@@ -1531,16 +1560,16 @@ function SuccessModal({ onGoHome }: { onGoHome: () => void }) {
         initial={{ opacity: 0, scale: 0.92, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 30, mass: 0.75 }}
+        transition={motionProfile.spring}
         className="relative glass-strong rounded-2xl p-8 sm:p-12 flex flex-col items-center gap-5 text-center w-full max-w-[400px] gpu-layer"
-        style={GPU_LAYER}
+        style={motionProfile.gpuLayer}
       >
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
+          transition={{ delay: 0.1, ...motionProfile.springSnappy }}
           className="w-16 h-16 rounded-full flex items-center justify-center gpu-layer"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', ...GPU_LAYER }}
+          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', ...motionProfile.gpuLayer }}
         >
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
             <path

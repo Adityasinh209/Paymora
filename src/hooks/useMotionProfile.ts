@@ -2,6 +2,19 @@ import { useMemo, type CSSProperties } from 'react'
 import { useMediaQuery } from './useMediaQuery'
 import { useReducedMotion } from './useReducedMotion'
 
+type Tween = {
+  type: 'tween'
+  duration: number
+  ease: [number, number, number, number]
+}
+
+type Spring = {
+  type: 'spring'
+  stiffness: number
+  damping: number
+  mass: number
+}
+
 export type MotionProfile = {
   /** OS “reduce motion” preference */
   reduced: boolean
@@ -13,19 +26,22 @@ export type MotionProfile = {
   enableBlur: boolean
   /** Floating background card drift */
   enableBgMotion: boolean
-  /** Soft, critically-damped springs — feel smooth on 60 & 120Hz */
-  spring: { type: 'spring'; stiffness: number; damping: number; mass: number }
-  springSnappy: { type: 'spring'; stiffness: number; damping: number; mass: number }
+  /** Soft settle for panels / QR / wallets */
+  spring: Spring | Tween
+  /** Snappy UI feedback (buttons, logos) */
+  springSnappy: Spring | Tween
   /** Opacity / short fades */
-  fade: { duration: number; ease: [number, number, number, number] }
+  fade: Tween
   /** Tab / panel slide */
-  slide: { duration: number; ease: [number, number, number, number] }
+  slide: Tween
   /**
    * Inline style to promote an element to its own compositor layer.
    * Empty on mobile — over-compositing exhausts GPU memory on phones.
    */
   gpuLayer: CSSProperties
 }
+
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 function detectLowPower(isNarrow: boolean): boolean {
   if (typeof window === 'undefined') return isNarrow
@@ -39,7 +55,6 @@ function detectLowPower(isNarrow: boolean): boolean {
   if (nav.connection?.effectiveType === '2g' || nav.connection?.effectiveType === 'slow-2g') return true
   if (typeof nav.deviceMemory === 'number' && nav.deviceMemory <= 4) return true
   if (typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4) {
-    // Many phones report 4–8; pair with narrow viewport
     if (isNarrow) return true
   }
   if (isNarrow) return true
@@ -56,6 +71,9 @@ export const GPU_LAYER: CSSProperties = {
 /**
  * Device-aware motion tuning so animations stay at ~60fps on phones
  * and feel premium on desktop without changing the visual language.
+ *
+ * Mobile uses short tweens (fixed frame budget) instead of springs
+ * (open-ended physics) — same motion path, far less main-thread work.
  */
 export function useMotionProfile(): MotionProfile {
   const reduced = useReducedMotion()
@@ -70,20 +88,21 @@ export function useMotionProfile(): MotionProfile {
       enableLayout: !lowPower && !reduced,
       enableBlur: !lowPower && !reduced,
       enableBgMotion: !lowPower && !reduced,
-      // Critically-damped: settles cleanly, minimal bounce (smoother on every refresh rate)
       spring: lowPower
-        ? { type: 'spring', stiffness: 320, damping: 34, mass: 0.7 }
+        ? { type: 'tween', duration: 0.28, ease: EASE_OUT }
         : { type: 'spring', stiffness: 260, damping: 28, mass: 0.75 },
       springSnappy: lowPower
-        ? { type: 'spring', stiffness: 380, damping: 36, mass: 0.6 }
+        ? { type: 'tween', duration: 0.2, ease: EASE_OUT }
         : { type: 'spring', stiffness: 340, damping: 30, mass: 0.65 },
       fade: {
-        duration: lowPower ? 0.16 : 0.22,
-        ease: [0.22, 1, 0.36, 1],
+        type: 'tween',
+        duration: lowPower ? 0.14 : 0.22,
+        ease: EASE_OUT,
       },
       slide: {
-        duration: lowPower ? 0.22 : 0.28,
-        ease: [0.22, 1, 0.36, 1],
+        type: 'tween',
+        duration: lowPower ? 0.2 : 0.28,
+        ease: EASE_OUT,
       },
       gpuLayer: lowPower ? {} : GPU_LAYER,
     }

@@ -212,7 +212,12 @@ export const AnimatedBackground = memo(function AnimatedBackground() {
   const [pageVisible, setPageVisible] = useState(
     () => typeof document === 'undefined' || document.visibilityState === 'visible',
   )
-  const cards = useMemo(() => buildRandomCards(lowPower ? 4 : 8), [lowPower])
+  // Phones: skip floating cards entirely — static gradient only.
+  // Even idle SVG-ish card DOM + shadows steal GPU during UI animations.
+  const cards = useMemo(
+    () => (lowPower ? [] : buildRandomCards(8)),
+    [lowPower],
+  )
   const animateCards = enableBgMotion && pageVisible && !prefersReduced
 
   useEffect(() => {
@@ -242,14 +247,16 @@ export const AnimatedBackground = memo(function AnimatedBackground() {
         }}
       />
 
-      <div
-        className="absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle, #3b82f6 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }}
-      />
+      {!lowPower && (
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, #3b82f6 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
+      )}
 
       {cards.map((card) => (
         <BgCard
