@@ -370,7 +370,21 @@ function UpiIllustration() {
 
 /** Left-panel illustration shown when Wallet tab is active */
 function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
-  const stack = ['phonepe', 'paytm', 'amazon'] as const
+  // Default fan shows Paytm / PhonePe / Amazon. Selecting MobiKwik, Freecharge,
+  // or JioMoney promotes that wallet into the centre so it gets the same lift.
+  const DEFAULT_STACK = ['phonepe', 'paytm', 'amazon'] as const
+  const stack: string[] = (() => {
+    if (!selectedId || (DEFAULT_STACK as readonly string[]).includes(selectedId)) {
+      return [...DEFAULT_STACK]
+    }
+    const flank = WALLETS.map(w => w.id).filter(id => id !== selectedId)
+    return [flank[0], selectedId, flank[1]]
+  })()
+
+  const accent =
+    WALLETS.find(w => w.id === selectedId)?.color ??
+    'rgba(255,153,0,0.55)'
+
   return (
     <div
       className="relative w-full max-w-[420px] mx-auto overflow-hidden select-none"
@@ -382,7 +396,14 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
       }}
       aria-label="Wallet payment illustration"
     >
-      <div className="absolute" style={{ top: '20%', right: '-15%', width: '65%', height: '80%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,153,0,0.1) 0%, transparent 70%)' }}/>
+      <motion.div
+        className="absolute"
+        style={{ top: '20%', right: '-15%', width: '65%', height: '80%', borderRadius: '50%' }}
+        animate={{
+          background: `radial-gradient(circle, ${accent}33 0%, transparent 70%)`,
+        }}
+        transition={{ duration: 0.45 }}
+      />
       <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }}/>
 
       <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-6">
@@ -394,41 +415,52 @@ function WalletIllustration({ selectedId }: { selectedId?: string | null }) {
         </div>
 
         <div className="relative flex items-center justify-center" style={{ height: 90 }}>
-          {stack.map((id, i) => {
-            const w = WALLETS.find(x => x.id === id)!
-            const Logo = WALLET_LOGOS[id]
-            const active = selectedId === id
-            return (
-              <motion.div
-                key={id}
-                className="absolute overflow-hidden flex items-center gap-2 px-3.5"
-                initial={false}
-                animate={{
-                  y: active ? -18 : (i - 1) * 10,
-                  scale: active ? 1.06 : 1,
-                  rotate: active ? 0 : (i - 1) * 4,
-                  zIndex: active ? 10 : i + 1,
-                }}
-                transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-                style={{
-                  width: '62%',
-                  aspectRatio: '3 / 1.7',
-                  background: `linear-gradient(135deg, ${w.color} 0%, ${w.color}CC 100%)`,
-                  boxShadow: `0 6px 20px ${w.color}44`,
-                  left: '50%',
-                  top: '50%',
-                  marginLeft: '-31%',
-                  marginTop: '-28px',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                }}
-              >
-                <div className="overflow-hidden flex-shrink-0" style={{ width: 24, height: 24, border: '1px solid rgba(255,255,255,0.25)' }}>
-                  {Logo ? <Logo size={24} /> : null}
-                </div>
-                <span style={{ color: 'rgba(255,255,255,0.95)', fontSize: 11, fontWeight: 700 }}>{w.name}</span>
-              </motion.div>
-            )
-          })}
+          <AnimatePresence initial={false}>
+            {stack.map((id, i) => {
+              const w = WALLETS.find(x => x.id === id)!
+              const Logo = WALLET_LOGOS[id]
+              const active = selectedId === id
+              return (
+                <motion.div
+                  key={id}
+                  className="absolute overflow-hidden flex items-center gap-2 px-3.5"
+                  initial={{ opacity: 0, y: 28, scale: 0.88, rotate: (i - 1) * 6 }}
+                  animate={{
+                    opacity: 1,
+                    y: active ? -18 : (i - 1) * 10,
+                    scale: active ? 1.06 : 1,
+                    rotate: active ? 0 : (i - 1) * 4,
+                    zIndex: active ? 10 : i + 1,
+                  }}
+                  exit={{ opacity: 0, y: 24, scale: 0.85, transition: { duration: 0.2 } }}
+                  transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                  style={{
+                    width: '62%',
+                    aspectRatio: '3 / 1.7',
+                    background: `linear-gradient(135deg, ${w.color} 0%, ${w.color}CC 100%)`,
+                    boxShadow: active
+                      ? `0 14px 32px ${w.color}66, 0 0 0 1px rgba(255,255,255,0.2)`
+                      : `0 6px 20px ${w.color}44`,
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-31%',
+                    marginTop: '-28px',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <motion.div
+                    className="overflow-hidden flex-shrink-0"
+                    style={{ width: 24, height: 24, border: '1px solid rgba(255,255,255,0.25)' }}
+                    animate={active ? { scale: [1, 1.18, 1] } : { scale: 1 }}
+                    transition={active ? { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] } : { duration: 0.2 }}
+                  >
+                    {Logo ? <Logo size={24} /> : null}
+                  </motion.div>
+                  <span style={{ color: 'rgba(255,255,255,0.95)', fontSize: 11, fontWeight: 700 }}>{w.name}</span>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
         </div>
 
         <div className="flex items-center justify-between">
@@ -1095,25 +1127,86 @@ export function CheckoutForm() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{
                                   opacity: 1,
-                                  y: 0,
-                                  borderColor: selected ? w.color : 'rgb(226 232 240)',
+                                  y: selected ? -2 : 0,
+                                  borderColor: selected ? 'transparent' : 'rgb(226 232 240)',
                                   backgroundColor: selected ? `${w.color}12` : '#ffffff',
+                                  boxShadow: selected
+                                    ? `0 8px 18px ${w.color}28`
+                                    : '0 0 0 transparent',
                                 }}
                                 transition={{
                                   opacity: { delay: i * 0.04, duration: 0.25 },
-                                  y: { delay: i * 0.04, duration: 0.25 },
+                                  y: { type: 'spring', stiffness: 320, damping: 22 },
                                   borderColor: { duration: 0.2 },
                                   backgroundColor: { duration: 0.2 },
+                                  boxShadow: { duration: 0.25 },
                                 }}
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => setSelectedWallet(prev => (prev === w.id ? null : w.id))}
-                                className="flex flex-col items-center gap-1.5 py-3 rounded-none border outline-none"
+                                className="relative flex flex-col items-center gap-1.5 py-3 rounded-none border outline-none overflow-visible"
                                 style={{ borderWidth: 1.5 }}
+                                aria-pressed={selected}
                               >
-                                <div className="w-9 h-9 rounded-none overflow-hidden border border-slate-100 shadow-sm">
+                                {/* Brand-colored orbit that travels around the selected box */}
+                                <AnimatePresence>
+                                  {selected && (
+                                    <motion.svg
+                                      key="orbit"
+                                      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+                                      viewBox="0 0 100 100"
+                                      preserveAspectRatio="none"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      aria-hidden="true"
+                                    >
+                                      {/* Soft full-perimeter tint */}
+                                      <rect
+                                        x="1.5"
+                                        y="1.5"
+                                        width="97"
+                                        height="97"
+                                        fill="none"
+                                        stroke={w.color}
+                                        strokeWidth="1.5"
+                                        strokeOpacity="0.28"
+                                        vectorEffect="non-scaling-stroke"
+                                      />
+                                      {/* Traveling highlight */}
+                                      <motion.rect
+                                        x="1.5"
+                                        y="1.5"
+                                        width="97"
+                                        height="97"
+                                        fill="none"
+                                        stroke={w.color}
+                                        strokeWidth="2.25"
+                                        strokeLinecap="round"
+                                        vectorEffect="non-scaling-stroke"
+                                        pathLength={100}
+                                        strokeDasharray="22 78"
+                                        initial={{ strokeDashoffset: 0 }}
+                                        animate={{ strokeDashoffset: -100 }}
+                                        transition={{ duration: 1.55, repeat: Infinity, ease: 'linear' }}
+                                        style={{ filter: `drop-shadow(0 0 3px ${w.color})` }}
+                                      />
+                                    </motion.svg>
+                                  )}
+                                </AnimatePresence>
+
+                                <motion.div
+                                  className="relative z-[1] w-9 h-9 rounded-none overflow-hidden border border-slate-100 shadow-sm"
+                                  animate={selected ? { scale: [1, 1.16, 1] } : { scale: 1 }}
+                                  transition={
+                                    selected
+                                      ? { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }
+                                      : { duration: 0.2 }
+                                  }
+                                >
                                   {Logo ? <Logo size={36} /> : null}
-                                </div>
-                                <span className="text-[10.5px] font-semibold text-slate-600 text-center leading-tight">
+                                </motion.div>
+                                <span className="relative z-[1] text-[10.5px] font-semibold text-slate-600 text-center leading-tight">
                                   {w.name}
                                 </span>
                               </motion.button>
